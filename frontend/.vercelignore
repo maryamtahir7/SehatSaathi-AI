@@ -1,0 +1,11 @@
+# Ignore large data files not needed at runtime (reduces lambda bundle size)
+api/data/Final_Augmented_dataset_Diseases_and_Symptoms.csv
+api/data/diabetes.csv
+api/data/Nutrition__Physical_Activity__and_Obesity.csv
+api/data/all_medicine_and_drug_price_data(20k)_Bangladesh.csv
+api/data/cancer patient data sets.csv
+api/data/daily_food_nutrition_dataset.csv
+api/data/Healthcare.csv
+
+# Ignore unused PyTorch/Safetensor models (we use ONNX for inference)
+api/models/skin_model/sbert_model/**
