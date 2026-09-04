@@ -1,8 +1,8 @@
 /**
  * Central configuration for the Python backend API URL.
- * Defaults to the production Hugging Face Spaces URL if env var is missing.
+ * Defaults to empty string to use Vercel's native internal API routes.
  */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://maryam3654-sehatsaathi-backend.hf.space';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export const apiEndpoints = {
   // Disease prediction
