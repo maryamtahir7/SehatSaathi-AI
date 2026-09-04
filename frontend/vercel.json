@@ -3,6 +3,38 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/index.py"
+    },
+    {
+      "source": "/symptoms",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/predict-disease",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/recommendations/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/analyze-medical-image",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/scan-prescription",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/medicines/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/checkout",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/health/:path*",
+      "destination": "/api/index.py"
     }
   ],
   "functions": {
