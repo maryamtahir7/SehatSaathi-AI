@@ -6,13 +6,10 @@ pandas
 numpy
 scikit-learn
 Pillow
-pennylane
-pennylane-lightning
 groq
 python-dotenv
 onnxruntime
-spacy
 google-generativeai
 httpx
 tokenizers
-requests 
+requests
