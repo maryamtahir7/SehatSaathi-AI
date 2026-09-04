@@ -1,0 +1,24 @@
+# Environments
+venv/
+.venv/
+.venv_win/
+__pycache__/
+*.pyc
+
+# Node
+frontend/node_modules/
+frontend/.next/
+frontend/.vercel/
+
+# Environment Variables
+.env
+.env.local
+*.env
+
+# IDEs
+.vscode/
+.idea/
+
+# OS Files
+.DS_Store
+Thumbs.db

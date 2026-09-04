@@ -1,0 +1,101 @@
+{
+    "glioma_tumor": {
+        "modality": "mri",
+        "centroids": [
+            65.729,
+            54.803,
+            8.053,
+            90.156
+        ]
+    },
+    "meningioma_tumor": {
+        "modality": "mri",
+        "centroids": [
+            55.83,
+            64.279,
+            5.824,
+            110.626
+        ]
+    },
+    "pituitary_tumor": {
+        "modality": "mri",
+        "centroids": [
+            59.24,
+            50.773,
+            7.276,
+            85.674
+        ]
+    },
+    "no_tumor": {
+        "modality": "mri",
+        "centroids": [
+            40.015,
+            45.257,
+            5.902,
+            49.238
+        ]
+    },
+    "pneumonia": {
+        "modality": "xray",
+        "centroids": [
+            134.635,
+            40.382,
+            4.103,
+            139.843
+        ]
+    },
+    "covid19": {
+        "modality": "xray",
+        "centroids": [
+            128.731,
+            44.796,
+            9.768,
+            129.472
+        ]
+    },
+    "bone_fracture": {
+        "modality": "xray",
+        "centroids": [
+            174.599,
+            85.826,
+            22.823,
+            189.203
+        ]
+    },
+    "arthritis": {
+        "modality": "xray",
+        "centroids": [
+            155.048,
+            68.37,
+            14.694,
+            159.099
+        ]
+    },
+    "tuberculosis": {
+        "modality": "xray",
+        "centroids": [
+            119.254,
+            54.761,
+            11.78,
+            125.237
+        ]
+    },
+    "lung_opacity": {
+        "modality": "xray",
+        "centroids": [
+            139.954,
+            35.757,
+            3.244,
+            144.363
+        ]
+    },
+    "normal": {
+        "modality": "xray",
+        "centroids": [
+            109.992,
+            60.77,
+            6.975,
+            115.073
+        ]
+    }
+}
