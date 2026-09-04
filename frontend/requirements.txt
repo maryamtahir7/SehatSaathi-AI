@@ -9,7 +9,6 @@ Pillow
 groq
 python-dotenv
 onnxruntime
-google-generativeai
 httpx
 tokenizers
 requests
