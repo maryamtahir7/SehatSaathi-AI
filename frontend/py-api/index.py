@@ -1,6 +1,5 @@
 import os
 import sys
-import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -82,5 +81,6 @@ app.include_router(chat_routes.router)
 app.include_router(skin_routes.router)
 
 if __name__ == "__main__":
+    import uvicorn
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
