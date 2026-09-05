@@ -220,17 +220,10 @@ def analyze_skin_image(image_bytes: bytes) -> Dict:
             if onnx_path.exists():
                 session = ort.InferenceSession(str(onnx_path))
                 
-                # Check expected input shape
-                input_shape = session.get_inputs()[0].shape
-                target_size = (input_shape[1], input_shape[2]) if len(input_shape) >= 3 and isinstance(input_shape[1], int) else (224, 224)
-                
-                img_resized = Image.open(io.BytesIO(image_bytes)).convert("RGB").resize(target_size)
-                img_array = np.array(img_resized).astype('float32')
-                
-                if img_array.max() > 1.0:
-                    img_array = img_array / 255.0
-                    
-                img_tensor = np.expand_dims(img_array, axis=0)
+                # The ONNX model my_model.keras expects 64x64x1
+                img_resized = Image.open(io.BytesIO(image_bytes)).convert("L").resize((64, 64))
+                img_array = np.array(img_resized).astype('float32') / 255.0
+                img_tensor = np.expand_dims(np.expand_dims(img_array, axis=-1), axis=0)
                 
                 input_name = session.get_inputs()[0].name
                 output_name = session.get_outputs()[0].name
@@ -250,6 +243,7 @@ def analyze_skin_image(image_bytes: bytes) -> Dict:
                 
                 onnx_success = True
         except Exception as e:
+            onnx_skin_error = str(e)
             print(f"[ONNX Skin] Error: {e}")
             
         detected_condition_names = [c["condition"] for c in conditions_detected]
@@ -294,7 +288,8 @@ def analyze_skin_image(image_bytes: bytes) -> Dict:
                 "skin_type_model": "Statistical Centroid ML",
                 "recommendation_engine": "Rule-based Tag Matcher"
             },
-            "clinical_disclaimer": "This skin analysis is AI-generated for informational purposes only. Results are not a substitute for professional dermatological evaluation."
+            "clinical_disclaimer": "This skin analysis is AI-generated for informational purposes only. Results are not a substitute for professional dermatological evaluation.",
+            "debug_onnx_skin_error": locals().get("onnx_skin_error", "None")
         }
 
     except Exception as e:
