@@ -97,7 +97,6 @@ export default function DiagnosePage() {
 
     try {
       const html2pdfModule = await import('html2pdf.js')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const html2pdf = (html2pdfModule as any).default || html2pdfModule
 
       element.classList.add('pdf-export-mode')
