@@ -1,5 +1,4 @@
 fastapi==0.136.1
-uvicorn==0.46.0
 python-multipart==0.0.27
 pydantic==2.13.3
 numpy
@@ -8,5 +7,3 @@ groq
 python-dotenv
 onnxruntime
 httpx
-tokenizers
-requests
