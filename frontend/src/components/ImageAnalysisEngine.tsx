@@ -133,7 +133,7 @@ export default function ImageAnalysisEngine({ type, title, classes }: ImageAnaly
           <div className="result-main">
             <div className="result-condition">
               <span className="label">{t("Primary Finding")}</span>
-              <span className="value">{result.condition || result.prediction || "Unknown"}</span>
+              <span className="value">{result.finding || result.primary_concern || result.condition || result.prediction || "Unknown"}</span>
             </div>
             <div className="result-confidence">
               <span className="label">{t("Confidence Score")}</span>
