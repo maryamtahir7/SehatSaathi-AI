@@ -7,12 +7,10 @@
     },
     {
       "src": "py-api/index.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": "py-api/**/*.{pkl,onnx,csv,safetensors,json}"
+      }
     }
-  ],
-  "functions": {
-    "py-api/**/*.py": {
-      "includeFiles": "py-api/**/*.{pkl,onnx,csv,safetensors,json}"
-    }
-  }
+  ]
 }
