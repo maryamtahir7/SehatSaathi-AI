@@ -189,7 +189,7 @@ export default function SymptomInput({ onPredict }: Props) {
           letter-spacing: 0.1em;
         }
         .symptom-ui__label svg {
-          color: #38bdf8;
+          color: #34d399;
           opacity: 0.9;
         }
         .symptom-ui__hint {
@@ -218,7 +218,7 @@ export default function SymptomInput({ onPredict }: Props) {
           left: 1.2rem;
           top: 50%;
           transform: translateY(-50%);
-          color: #38bdf8;
+          color: #34d399;
           opacity: 0.65;
           pointer-events: none;
         }
@@ -239,8 +239,8 @@ export default function SymptomInput({ onPredict }: Props) {
         }
         .symptom-ui__search:focus {
           border-color: rgba(56, 189, 248, 0.65);
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-          background: rgba(14, 165, 233, 0.07);
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+          background: rgba(16, 185, 129, 0.07);
         }
 
         .symptom-ui__chips {
@@ -273,13 +273,13 @@ export default function SymptomInput({ onPredict }: Props) {
           border-radius: 50%;
           display: grid;
           place-items: center;
-          background: rgba(14, 165, 233, 0.12);
-          color: #38bdf8;
+          background: rgba(16, 185, 129, 0.12);
+          color: #34d399;
         }
         .symptom-chip--add:hover {
           transform: translateY(-3px);
           border-color: rgba(56, 189, 248, 0.45);
-          background: rgba(14, 165, 233, 0.1);
+          background: rgba(16, 185, 129, 0.1);
           box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
         }
 
@@ -289,9 +289,9 @@ export default function SymptomInput({ onPredict }: Props) {
           font-size: 0.88rem;
           font-weight: 700;
           color: #ecfeff;
-          background: linear-gradient(135deg, rgba(14, 165, 233, 0.22) 0%, rgba(99, 102, 241, 0.18) 100%);
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(99, 102, 241, 0.18) 100%);
           border: 1px solid rgba(56, 189, 248, 0.45);
-          box-shadow: 0 10px 26px rgba(14, 165, 233, 0.15);
+          box-shadow: 0 10px 26px rgba(16, 185, 129, 0.15);
         }
         .symptom-chip__remove {
           opacity: 0.55;
@@ -303,7 +303,7 @@ export default function SymptomInput({ onPredict }: Props) {
         .symptom-chip--selected:hover {
           transform: translateY(-2px) scale(1.02);
           border-color: rgba(129, 230, 217, 0.65);
-          box-shadow: 0 16px 36px rgba(14, 165, 233, 0.28);
+          box-shadow: 0 16px 36px rgba(16, 185, 129, 0.28);
         }
 
         .symptom-ui__empty {
@@ -373,8 +373,8 @@ export default function SymptomInput({ onPredict }: Props) {
         }
         .symptom-ui__queue-zone:not(.symptom-ui__queue-zone--empty) {
           border-style: solid;
-          border-color: rgba(14, 165, 233, 0.22);
-          background: rgba(14, 165, 233, 0.04);
+          border-color: rgba(16, 185, 129, 0.22);
+          background: rgba(16, 185, 129, 0.04);
         }
         .symptom-ui__placeholder {
           position: absolute;
@@ -417,7 +417,7 @@ export default function SymptomInput({ onPredict }: Props) {
         .symptom-ui__cta:not(:disabled) {
           color: #fff;
           border-color: rgba(255, 255, 255, 0.18);
-          background: linear-gradient(125deg, #0ea5e9 0%, #6366f1 48%, #8b5cf6 100%);
+          background: linear-gradient(125deg, #059669 0%, #10b981 48%, #10b981 100%);
           background-size: 160% auto;
           box-shadow: 0 18px 44px rgba(79, 70, 229, 0.38);
         }

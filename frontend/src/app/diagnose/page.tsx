@@ -362,8 +362,8 @@ export default function DiagnosePage() {
           z-index: -1;
           pointer-events: none;
           background:
-            radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14, 165, 233, 0.18), transparent),
-            radial-gradient(ellipse 60% 40% at 100% 50%, rgba(168, 85, 247, 0.12), transparent),
+            radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.18), transparent),
+            radial-gradient(ellipse 60% 40% at 100% 50%, rgba(5, 150, 105, 0.12), transparent),
             radial-gradient(ellipse 50% 35% at 0% 80%, rgba(52, 211, 153, 0.08), transparent);
         }
         .diagnose-page__inner {
@@ -398,8 +398,8 @@ export default function DiagnosePage() {
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: #7dd3fc;
-          background: rgba(14, 165, 233, 0.12);
-          border: 1px solid rgba(14, 165, 233, 0.35);
+          background: rgba(16, 185, 129, 0.12);
+          border: 1px solid rgba(16, 185, 129, 0.35);
           margin-bottom: 1.25rem;
         }
         .diagnose-hero__badge-dot {
@@ -420,7 +420,7 @@ export default function DiagnosePage() {
           line-height: 1.08;
         }
         .diagnose-hero__title-accent {
-          background: linear-gradient(120deg, #38bdf8 0%, #a855f7 45%, #34d399 100%);
+          background: linear-gradient(120deg, #34d399 0%, #059669 45%, #34d399 100%);
           background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -449,9 +449,9 @@ export default function DiagnosePage() {
         .diagnose-steps__track-fill {
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(90deg, #0ea5e9, #8b5cf6, #34d399);
+          background: linear-gradient(90deg, #059669, #10b981, #34d399);
           transition: width 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-          box-shadow: 0 0 24px rgba(14, 165, 233, 0.45);
+          box-shadow: 0 0 24px rgba(16, 185, 129, 0.45);
         }
         .diagnose-steps__list {
           list-style: none;
@@ -489,7 +489,7 @@ export default function DiagnosePage() {
         .diagnose-steps__item--active .diagnose-steps__num {
           color: #fff;
           border-color: transparent;
-          background: linear-gradient(145deg, #0ea5e9, #6366f1);
+          background: linear-gradient(145deg, #059669, #10b981);
           box-shadow: 0 12px 32px rgba(99, 102, 241, 0.35);
           transform: translateY(-3px);
         }
@@ -554,7 +554,7 @@ export default function DiagnosePage() {
           font-weight: 800;
           letter-spacing: 0.16em;
           text-transform: uppercase;
-          color: #38bdf8;
+          color: #34d399;
           margin: 0 0 0.5rem;
         }
         .diagnose-panel__heading {
@@ -646,15 +646,15 @@ export default function DiagnosePage() {
           flex: 1;
           min-width: 200px;
           border-radius: 16px;
-          border: 1px dashed rgba(14, 165, 233, 0.35);
-          background: rgba(14, 165, 233, 0.04);
+          border: 1px dashed rgba(16, 185, 129, 0.35);
+          background: rgba(16, 185, 129, 0.04);
           cursor: pointer;
           transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
         }
         .diagnose-upload__zone:hover {
-          border-color: rgba(168, 85, 247, 0.55);
-          background: rgba(168, 85, 247, 0.07);
-          box-shadow: 0 0 32px rgba(168, 85, 247, 0.12);
+          border-color: rgba(5, 150, 105, 0.55);
+          background: rgba(5, 150, 105, 0.07);
+          box-shadow: 0 0 32px rgba(5, 150, 105, 0.12);
         }
         .diagnose-upload__zone-inner {
           display: flex;
@@ -667,7 +667,7 @@ export default function DiagnosePage() {
           color: #94a3b8;
         }
         .diagnose-upload__zone-inner svg {
-          color: #38bdf8;
+          color: #34d399;
           flex-shrink: 0;
         }
         .diagnose-upload__clear {
@@ -721,9 +721,9 @@ export default function DiagnosePage() {
         }
         .diagnose-field__input:focus,
         .diagnose-field__select:focus {
-          border-color: rgba(14, 165, 233, 0.65);
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
-          background: rgba(14, 165, 233, 0.06);
+          border-color: rgba(16, 185, 129, 0.65);
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+          background: rgba(16, 185, 129, 0.06);
         }
         .diagnose-field__select {
           cursor: pointer;
@@ -770,14 +770,14 @@ export default function DiagnosePage() {
         .diagnose-loader__ring--outer {
           inset: 0;
           border-width: 3px;
-          border-top-color: #0ea5e9;
-          border-right-color: rgba(14, 165, 233, 0.25);
+          border-top-color: #059669;
+          border-right-color: rgba(16, 185, 129, 0.25);
         }
         .diagnose-loader__ring--inner {
           inset: 14px;
           border-width: 3px;
-          border-bottom-color: #a855f7;
-          border-left-color: rgba(168, 85, 247, 0.2);
+          border-bottom-color: #059669;
+          border-left-color: rgba(5, 150, 105, 0.2);
           animation-direction: reverse;
           animation-duration: 1.4s;
         }
@@ -786,7 +786,7 @@ export default function DiagnosePage() {
           inset: 0;
           display: grid;
           place-items: center;
-          color: #38bdf8;
+          color: #34d399;
           filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));
         }
         .diagnose-overlay__title {
@@ -825,8 +825,8 @@ export default function DiagnosePage() {
           display: grid;
           place-items: center;
           color: #fff;
-          background: linear-gradient(145deg, #0ea5e9, #059669);
-          box-shadow: 0 16px 36px rgba(14, 165, 233, 0.35);
+          background: linear-gradient(145deg, #059669, #059669);
+          box-shadow: 0 16px 36px rgba(16, 185, 129, 0.35);
         }
         .diagnose-toolbar__title {
           font-family: Outfit, sans-serif;
@@ -846,7 +846,7 @@ export default function DiagnosePage() {
           flex-wrap: wrap;
         }
         .diagnose-toolbar__meta strong {
-          color: #38bdf8;
+          color: #34d399;
           font-weight: 800;
         }
         .diagnose-toolbar__dot {
@@ -886,7 +886,7 @@ export default function DiagnosePage() {
         }
         .diagnose-btn--primary {
           color: #fff;
-          background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
           border-color: rgba(255, 255, 255, 0.18);
           box-shadow: 0 14px 36px rgba(99, 102, 241, 0.35);
         }

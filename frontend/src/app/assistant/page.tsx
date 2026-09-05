@@ -97,16 +97,16 @@ export default function AssistantPage() {
     <main style={{ minHeight: '100vh', background: '#f8fafc', position: 'relative', overflow: 'hidden' }}>
       
       {/* Ambient background glows */}
-      <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '600px', height: '600px', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'absolute', bottom: '-20%', left: '-10%', width: '800px', height: '800px', background: 'radial-gradient(circle, rgba(5, 150, 105, 0.06) 0%, transparent 70%)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 0 }} />
 
       <div className="container" style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)', position: 'relative', zIndex: 1 }}>
         
         {/* HEADER */}
         <div style={{ textAlign: 'center', marginBottom: '2rem', flexShrink: 0 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(2, 132, 199, 0.1)', border: '1px solid rgba(2, 132, 199, 0.2)', padding: '0.4rem 1.2rem', borderRadius: '50px', marginBottom: '1.5rem' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0284c7', boxShadow: '0 0 10px #0284c7', animation: 'pulseGlow 2s infinite' }}></div>
-            <span style={{ color: '#0284c7', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(5, 150, 105, 0.1)', border: '1px solid rgba(5, 150, 105, 0.2)', padding: '0.4rem 1.2rem', borderRadius: '50px', marginBottom: '1.5rem' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669', boxShadow: '0 0 10px #059669', animation: 'pulseGlow 2s infinite' }}></div>
+            <span style={{ color: '#059669', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
               {language === 'ur' ? 'اے آئی فعال — Groq پر مبنی' : 'AI Active — Groq Powered'}
             </span>
           </div>
@@ -135,7 +135,7 @@ export default function AssistantPage() {
           {/* Top Bar of Chat */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem 2rem', borderBottom: '1px solid rgba(226, 232, 240, 1)', background: 'rgba(255, 255, 255, 0.95)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-               <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #0284c7, #0ea5e9)', color: '#ffffff', display: 'grid', placeItems: 'center', boxShadow: '0 4px 15px rgba(2, 132, 199, 0.2)' }}>
+               <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'linear-gradient(135deg, #059669, #10b981)', color: '#ffffff', display: 'grid', placeItems: 'center', boxShadow: '0 4px 15px rgba(5, 150, 105, 0.2)' }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                </div>
                <div>
@@ -155,9 +155,9 @@ export default function AssistantPage() {
                   style={{
                     padding: '0.4rem 1rem',
                     borderRadius: '10px',
-                    border: language === lang ? '1px solid rgba(2, 132, 199, 0.3)' : '1px solid rgba(226, 232, 240, 1)',
-                    background: language === lang ? 'rgba(2, 132, 199, 0.1)' : 'transparent',
-                    color: language === lang ? '#0284c7' : '#64748b',
+                    border: language === lang ? '1px solid rgba(5, 150, 105, 0.3)' : '1px solid rgba(226, 232, 240, 1)',
+                    background: language === lang ? 'rgba(5, 150, 105, 0.1)' : 'transparent',
+                    color: language === lang ? '#059669' : '#64748b',
                     cursor: 'pointer',
                     fontWeight: language === lang ? 700 : 500,
                     fontSize: '0.85rem',
@@ -191,8 +191,8 @@ export default function AssistantPage() {
           }}>
             {messages.length === 0 && (
               <div style={{ margin: 'auto', textAlign: 'center', maxWidth: '600px' }}>
-                <div style={{ width: '80px', height: '80px', background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.1), rgba(14, 165, 233, 0.1))', borderRadius: '24px', margin: '0 auto 1.5rem', display: 'grid', placeItems: 'center', border: '1px solid rgba(2, 132, 199, 0.2)' }}>
-                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0284c7" strokeWidth="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                <div style={{ width: '80px', height: '80px', background: 'linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(16, 185, 129, 0.1))', borderRadius: '24px', margin: '0 auto 1.5rem', display: 'grid', placeItems: 'center', border: '1px solid rgba(5, 150, 105, 0.2)' }}>
+                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
                 </div>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>
                   {language === 'ur' ? 'میں آپ کی کیا مدد کر سکتا ہوں؟' : 'How can I assist you today?'}
@@ -244,7 +244,7 @@ export default function AssistantPage() {
                   padding: '1.2rem 1.5rem',
                   borderRadius: msg.role === 'user' ? '24px 24px 4px 24px' : '24px 24px 24px 4px',
                   background: msg.role === 'user'
-                    ? 'linear-gradient(135deg, #0284c7, #0ea5e9)'
+                    ? 'linear-gradient(135deg, #059669, #10b981)'
                     : '#ffffff',
                   border: msg.role === 'user'
                     ? 'none'
@@ -254,7 +254,7 @@ export default function AssistantPage() {
                   lineHeight: 1.7,
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
-                  boxShadow: msg.role === 'user' ? '0 10px 25px rgba(2, 132, 199, 0.25)' : '0 4px 15px rgba(15, 23, 42, 0.03)',
+                  boxShadow: msg.role === 'user' ? '0 10px 25px rgba(5, 150, 105, 0.25)' : '0 4px 15px rgba(15, 23, 42, 0.03)',
                   textAlign: isRTL ? 'right' : 'left'
                 }}>
                   {msg.content}
@@ -275,9 +275,9 @@ export default function AssistantPage() {
                   display: 'flex', gap: '8px', alignItems: 'center',
                   boxShadow: '0 4px 15px rgba(15, 23, 42, 0.03)'
                 }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0284c7', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '-0.32s' }} />
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0284c7', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '-0.16s' }} />
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0284c7', animation: 'bounce 1.4s infinite ease-in-out both' }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '-0.32s' }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '-0.16s' }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#059669', animation: 'bounce 1.4s infinite ease-in-out both' }} />
                 </div>
               </div>
             )}
@@ -338,14 +338,14 @@ export default function AssistantPage() {
                   height: '46px',
                   borderRadius: '14px',
                   border: 'none',
-                  background: loading || !input.trim() ? 'rgba(226, 232, 240, 1)' : 'linear-gradient(135deg, #0284c7, #0ea5e9)',
+                  background: loading || !input.trim() ? 'rgba(226, 232, 240, 1)' : 'linear-gradient(135deg, #059669, #10b981)',
                   color: loading || !input.trim() ? '#94a3b8' : '#ffffff',
                   cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
                   display: 'grid',
                   placeItems: 'center',
                   transition: 'all 0.3s ease',
                   flexShrink: 0,
-                  boxShadow: loading || !input.trim() ? 'none' : '0 8px 20px rgba(2, 132, 199, 0.3)'
+                  boxShadow: loading || !input.trim() ? 'none' : '0 8px 20px rgba(5, 150, 105, 0.3)'
                 }}
                 className={!loading && input.trim() ? 'send-btn' : ''}
               >
@@ -359,7 +359,7 @@ export default function AssistantPage() {
       <style jsx>{`
         @keyframes pulseGlow {
           0%, 100% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 15px #0284c7; }
+          50% { opacity: 1; transform: scale(1.3); box-shadow: 0 0 15px #059669; }
         }
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(15px); }
@@ -370,18 +370,18 @@ export default function AssistantPage() {
           40% { transform: scale(1); }
         }
         .quick-question-btn:hover {
-          border-color: #0284c7 !important;
-          color: #0284c7 !important;
+          border-color: #059669 !important;
+          color: #059669 !important;
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(2, 132, 199, 0.1) !important;
+          box-shadow: 0 8px 20px rgba(5, 150, 105, 0.1) !important;
         }
         .lang-btn:hover {
-          background: rgba(2, 132, 199, 0.05) !important;
-          border-color: rgba(2, 132, 199, 0.3) !important;
+          background: rgba(5, 150, 105, 0.05) !important;
+          border-color: rgba(5, 150, 105, 0.3) !important;
         }
         .input-container:focus-within {
-          border-color: #0284c7 !important;
-          box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.1) !important;
+          border-color: #059669 !important;
+          box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1) !important;
         }
         .send-btn:hover {
           transform: scale(1.05) translateY(-2px);

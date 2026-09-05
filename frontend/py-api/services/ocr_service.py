@@ -118,38 +118,21 @@ except Exception:
     SPACY_READY = False
 
 def extract_text_from_image(image_bytes: bytes) -> str:
-    """Cloud OCR extraction using free API to bypass Vercel size limits."""
-    import requests
-    import base64
+    """Offline OCR extraction using local Tesseract engine."""
+    if not TESSERACT_READY or not PIL_READY:
+        return "ERROR: Local OCR engine (Tesseract) is not installed or configured. Cloud OCR has been disabled for privacy."
     
     try:
-        # Convert image to base64
-        base64_image = base64.b64encode(image_bytes).decode('utf-8')
-        payload = {
-            'apikey': 'helloworld', # Free tier demo key for OCR.space
-            'base64Image': f'data:image/jpeg;base64,{base64_image}',
-            'language': 'eng',
-            'isOverlayRequired': False,
-            'OCREngine': 2 # Engine 2 is better for handwriting/receipts
-        }
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        # Enhance image for better OCR
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(1.5)
+        image = image.filter(ImageFilter.SHARPEN)
         
-        response = requests.post('https://api.ocr.space/parse/image', data=payload, timeout=15)
-        
-        if response.status_code == 200:
-            result = response.json()
-            if result.get('IsErroredOnProcessing'):
-                return "ERROR: Cloud OCR processing failed."
-                
-            text = ""
-            for res in result.get('ParsedResults', []):
-                text += res.get('ParsedText', '') + " "
-                
-            text = text.strip()
-            if not text:
-                return "ERROR: No text identified. The image might be blurry or empty."
-            return text
-        else:
-             return "ERROR: Cloud OCR Engine Unreachable."
+        text = pytesseract.image_to_string(image)
+        if not text.strip():
+            return "ERROR: No text identified. The image might be blurry or empty."
+        return text.strip()
     except Exception as e:
         return f"ERROR: OCR Engine Failure - {str(e)}"
 
