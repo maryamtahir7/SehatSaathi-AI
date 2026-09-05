@@ -122,7 +122,11 @@ export default function PrescriptionUploader({ onAddToCart, onBuyNowMedicine, us
         body: formData,
       })
       const data = await response.json()
-      setResult(data)
+      if (data && data.medicines_identified) {
+        setResult(data)
+      } else {
+        throw new Error(data.detail || data.error || "Invalid response format")
+      }
     } catch (e) {
       alert("Failed to scan image. Please ensure the Nutrition Engine backend is active.")
     } finally {

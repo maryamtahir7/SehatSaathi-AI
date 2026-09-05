@@ -37,7 +37,13 @@ export default function SymptomInput({ onPredict }: Props) {
   useEffect(() => {
     fetch(apiEndpoints.symptoms)
       .then((res) => res.json())
-      .then((data) => setAvailableSymptoms(data.symptoms))
+      .then((data) => {
+        if (data && Array.isArray(data.symptoms)) {
+          setAvailableSymptoms(data.symptoms)
+        } else {
+          throw new Error("Invalid response format")
+        }
+      })
       .catch(() =>
         setAvailableSymptoms(['fever', 'cough', 'fatigue', 'headache', 'nausea', 'vomiting', 'sore_throat', 'body_ache'])
       )

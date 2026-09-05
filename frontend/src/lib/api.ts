@@ -1,8 +1,8 @@
 /**
  * Central configuration for the Python backend API URL.
- * Defaults to empty string to use Vercel's native internal API routes.
+ * Hardcoded to empty string to FORCE Vercel to use its native internal Serverless Functions.
  */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+export const API_URL = '';
 
 export const apiEndpoints = {
   // Disease prediction
