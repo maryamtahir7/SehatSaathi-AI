@@ -1,56 +1,58 @@
 import os
 import ast
-import pickle
+import csv
 import numpy as np
-import pandas as pd
+import onnxruntime as ort
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# The user placed the kaggle datasets in the 'dataset' directory
 DATA_DIR = os.path.join(BASE_DIR, 'dataset')
 MODELS_DIR = os.path.join(BASE_DIR, 'models')
 
-# Kaggle Dataset Files
 DESC_PATH = os.path.join(DATA_DIR, 'description.csv')
 PRECAUTIONS_PATH = os.path.join(DATA_DIR, 'precautions_df.csv')
 MEDS_PATH = os.path.join(DATA_DIR, 'medications.csv')
 DIETS_PATH = os.path.join(DATA_DIR, 'diets.csv')
 WORKOUT_PATH = os.path.join(DATA_DIR, 'workout_df.csv')
+MED_DB_PATH = os.path.join(DATA_DIR, '../data/Medicine_Details.csv')
 
-# The trained SVC model 
-MODEL_PATH = os.path.join(MODELS_DIR, 'svc.pkl')
+MODEL_PATH = os.path.join(MODELS_DIR, 'svc.onnx')
 
-svc_model = None
+ort_session = None
 
-# Load CSVs
-description_df = None
-precautions_df = None
-medications_df = None
-diets_df = None
-workout_df = None
+# Using lists of dicts instead of DataFrames to save 40MB of pandas
+description_data = []
+precautions_data = []
+medications_data = []
+diets_data = []
+workout_data = []
+
+def load_csv_data(filepath):
+    data = []
+    if os.path.exists(filepath):
+        with open(filepath, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                data.append(row)
+    return data
 
 def load_ml_resources():
-    global svc_model, description_df, precautions_df, medications_df, diets_df, workout_df
+    global ort_session, description_data, precautions_data, medications_data, diets_data, workout_data
     try:
-        # Load the Pure ML Model
         if os.path.exists(MODEL_PATH):
-            with open(MODEL_PATH, 'rb') as f:
-                svc_model = pickle.load(f)
+            ort_session = ort.InferenceSession(MODEL_PATH)
         
-        # Load DataFrames
-        if os.path.exists(DESC_PATH): description_df = pd.read_csv(DESC_PATH)
-        if os.path.exists(PRECAUTIONS_PATH): precautions_df = pd.read_csv(PRECAUTIONS_PATH)
-        if os.path.exists(MEDS_PATH): medications_df = pd.read_csv(MEDS_PATH)
-        if os.path.exists(DIETS_PATH): diets_df = pd.read_csv(DIETS_PATH)
-        if os.path.exists(WORKOUT_PATH): workout_df = pd.read_csv(WORKOUT_PATH)
+        description_data = load_csv_data(DESC_PATH)
+        precautions_data = load_csv_data(PRECAUTIONS_PATH)
+        medications_data = load_csv_data(MEDS_PATH)
+        diets_data = load_csv_data(DIETS_PATH)
+        workout_data = load_csv_data(WORKOUT_PATH)
             
-        print("Pure ML Model (SVC) and Kaggle Data loaded successfully!")
+        print("ONNX Model and Kaggle Data loaded successfully!")
     except Exception as e:
         print(f"Warning: ML resources missing. Error: {e}")
 
-# Call it once when module is imported
 load_ml_resources()
 
-# Dictionary exactly from the Kaggle Notebook
 symptoms_dict = {
     'itching': 0, 'skin_rash': 1, 'nodal_skin_eruptions': 2, 'continuous_sneezing': 3, 'shivering': 4, 'chills': 5, 
     'joint_pain': 6, 'stomach_pain': 7, 'acidity': 8, 'ulcers_on_tongue': 9, 'muscle_wasting': 10, 'vomiting': 11, 
@@ -95,111 +97,103 @@ diseases_list = {
 }
 
 def predict_disease(user_symptoms: list[str]) -> str:
-    """Uses the pure SVC machine learning model to predict disease."""
-    if not svc_model:
+    if not ort_session:
         return "General Fatigue"
     
-    # Map raw symptoms to dictionary keys
-    # Clean the input, user might send spaces instead of underscores
     cleaned_symptoms = [s.strip().lower().replace(" ", "_") for s in user_symptoms]
-    
-    # Create 132-dimension 0s array
-    input_vector = np.zeros(len(symptoms_dict))
+    input_vector = np.zeros((1, len(symptoms_dict)), dtype=np.float32)
     
     for symptom in cleaned_symptoms:
         if symptom in symptoms_dict:
-            input_vector[symptoms_dict[symptom]] = 1
+            input_vector[0, symptoms_dict[symptom]] = 1.0
             
-    # Predict using SVC
-    prediction = svc_model.predict([input_vector])[0]
-    return diseases_list.get(prediction, "General Fatigue")
-
+    try:
+        input_name = ort_session.get_inputs()[0].name
+        prediction = ort_session.run(None, {input_name: input_vector})[0][0]
+        return diseases_list.get(int(prediction), "General Fatigue")
+    except:
+        return "General Fatigue"
 
 def get_recommendations(disease: str, age: int = None, gender: str = None) -> dict:
-    """Extracts recommendations from Kaggle CSVs exactly like the notebook."""
-    
     desc = ""
     pre_list = []
     med_list = []
     die_list = []
     wrkout_list = []
     
-    # Safely extract from DataFrames
     try:
-        if description_df is not None:
-            match = description_df[description_df['Disease'] == disease]
-            if not match.empty:
-                desc = match['Description'].iloc[0]
+        for row in description_data:
+            if row.get('Disease') == disease:
+                desc = row.get('Description', '')
+                break
 
-        if precautions_df is not None:
-            match = precautions_df[precautions_df['Disease'] == disease]
-            if not match.empty:
+        for row in precautions_data:
+            if row.get('Disease') == disease:
                 cols = ['Precaution_1', 'Precaution_2', 'Precaution_3', 'Precaution_4']
-                pre_list = [str(match[col].iloc[0]) for col in cols if pd.notna(match[col].iloc[0])]
+                pre_list = [row.get(col) for col in cols if row.get(col)]
+                break
 
-        if medications_df is not None:
-            import re
+        import re
+        found_in_db = False
+        
+        if os.path.exists(MED_DB_PATH):
+            words = re.findall(r'\b[a-zA-Z]{4,}\b', disease.lower())
+            words.append(disease.lower())
             
-            # Fetch from Medicine_Details.csv to get Image URLs and rich data
-            med_db_path = os.path.join(DATA_DIR, '../data/Medicine_Details.csv')
-            found_in_db = False
+            matches = []
+            with open(MED_DB_PATH, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for r in reader:
+                    uses = r.get('Uses', '').lower()
+                    if any(w in uses for w in words):
+                        matches.append(r)
             
-            if os.path.exists(med_db_path):
-                med_df = pd.read_csv(med_db_path)
+            if matches:
+                seen_names = set()
+                unique_matches = []
+                for m in matches:
+                    name = m.get('Medicine Name')
+                    if name and name not in seen_names:
+                        seen_names.add(name)
+                        unique_matches.append(m)
                 
-                # Extract words > 4 chars from the disease to use as search keywords
-                words = re.findall(r'\b[a-zA-Z]{4,}\b', disease.lower())
-                # Add the exact disease name as a fallback keyword
-                words.append(disease.lower())
+                matches_with_img = [m for m in unique_matches if m.get('Image URL')]
+                final_matches = matches_with_img if len(matches_with_img) >= 3 else unique_matches
                 
-                matches = pd.DataFrame()
-                for w in words:
-                    res = med_df[med_df['Uses'].str.contains(w, case=False, na=False, regex=False)]
-                    if not res.empty:
-                        matches = pd.concat([matches, res])
-                
-                if not matches.empty:
-                    matches = matches.drop_duplicates(subset=['Medicine Name'])
-                    # Prioritize medicines that actually have an image URL
-                    matches_with_img = matches[matches['Image URL'].notna()]
-                    final_matches = matches_with_img if len(matches_with_img) >= 3 else matches
-                    
-                    for _, row in final_matches.head(4).iterrows():
-                        med_list.append({
-                            "name": str(row['Medicine Name']),
-                            "image_url": str(row['Image URL']) if pd.notna(row['Image URL']) else ""
-                        })
-                    found_in_db = True
-            
-            # Fallback to pure Kaggle medications.csv if no matches found
-            if not found_in_db:
-                match = medications_df[medications_df['Disease'] == disease]
-                if not match.empty:
-                    raw_meds = match['Medication'].iloc[0]
+                for r in final_matches[:4]:
+                    med_list.append({
+                        "name": str(r.get('Medicine Name', '')),
+                        "image_url": str(r.get('Image URL', ''))
+                    })
+                found_in_db = True
+        
+        if not found_in_db:
+            for row in medications_data:
+                if row.get('Disease') == disease:
+                    raw_meds = row.get('Medication', '')
                     if str(raw_meds).startswith('['):
                         names = ast.literal_eval(raw_meds)
                     else:
                         names = [raw_meds]
                     med_list = [{"name": n, "image_url": ""} for n in names]
+                    break
 
-        if diets_df is not None:
-            match = diets_df[diets_df['Disease'] == disease]
-            if not match.empty:
-                raw_diets = match['Diet'].iloc[0]
+        for row in diets_data:
+            if row.get('Disease') == disease:
+                raw_diets = row.get('Diet', '')
                 if str(raw_diets).startswith('['):
                     die_list = ast.literal_eval(raw_diets)
                 else:
                     die_list = [raw_diets]
+                break
 
-        if workout_df is not None:
-            match = workout_df[workout_df['disease'] == disease]
-            if not match.empty:
-                wrkout_list = match['workout'].tolist()
+        for row in workout_data:
+            if row.get('disease') == disease:
+                wrkout_list.append(row.get('workout', ''))
                 
     except Exception as e:
         print(f"Error fetching recommendations: {e}")
 
-    # Fallbacks if DataFrames not found
     if not desc: desc = f"The Pure Machine Learning SVC model diagnosed {disease}."
     if not pre_list: pre_list = ["Consult a doctor", "Rest"]
     if not med_list: med_list = [{"name": "Consult physician for prescription", "image_url": ""}]
@@ -209,40 +203,34 @@ def get_recommendations(disease: str, age: int = None, gender: str = None) -> di
     return {
         "disease": disease,
         "description": desc,
-        "rationale": "Predicted natively by 132-dimension Support Vector Classifier (SVC) Machine Learning Model.",
+        "rationale": "Predicted natively by ONNX optimized Machine Learning Model.",
         "precautions": pre_list,
         "medicines": med_list,
-        "lab_tests": ["Complete Blood Count", "Specialist Consultation"], # Kaggle dataset lacks labs, using standard default
+        "lab_tests": ["Complete Blood Count", "Specialist Consultation"],
         "diet_plan": die_list,
         "workout_plan": wrkout_list
     }
 
 def get_all_symptoms():
-    """Returns a list of all supported symptoms for the frontend."""
     return [s.replace("_", " ").capitalize() for s in symptoms_dict.keys()]
 
 def get_medicine_details(medicine_name: str):
-    """Fetches comprehensive medicine details from Medicine_Details.csv."""
     try:
-        med_db_path = os.path.join(DATA_DIR, '../data/Medicine_Details.csv')
-        if os.path.exists(med_db_path):
-            med_df = pd.read_csv(med_db_path)
-            
-            # Case insensitive exact or substring match for medicine name
-            matches = med_df[med_df['Medicine Name'].str.contains(medicine_name, case=False, na=False, regex=False)]
-            if not matches.empty:
-                row = matches.iloc[0]
-                return {
-                    "name": str(row['Medicine Name']),
-                    "generic": str(row['Composition']) if pd.notna(row['Composition']) else "Verified Formula",
-                    "uses": str(row['Uses']) if pd.notna(row['Uses']) else "General Clinical Use",
-                    "side_effects": str(row['Side_effects']) if pd.notna(row['Side_effects']) else "None reported natively",
-                    "manufacturer": str(row['Manufacturer']) if pd.notna(row['Manufacturer']) else "Global Pharmaceuticals",
-                    "image_url": str(row['Image URL']) if pd.notna(row['Image URL']) else "",
-                    "price": float(len(str(row['Medicine Name'])) * 15.0), # Mock dynamic price based on name length
-                    "unit": "Pack"
-                }
+        if os.path.exists(MED_DB_PATH):
+            with open(MED_DB_PATH, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if medicine_name.lower() in row.get('Medicine Name', '').lower():
+                        return {
+                            "name": str(row.get('Medicine Name', '')),
+                            "generic": str(row.get('Composition', 'Verified Formula')) or "Verified Formula",
+                            "uses": str(row.get('Uses', 'General Clinical Use')) or "General Clinical Use",
+                            "side_effects": str(row.get('Side_effects', 'None reported natively')) or "None reported natively",
+                            "manufacturer": str(row.get('Manufacturer', 'Global Pharmaceuticals')) or "Global Pharmaceuticals",
+                            "image_url": str(row.get('Image URL', '')) or "",
+                            "price": float(len(str(row.get('Medicine Name', ''))) * 15.0),
+                            "unit": "Pack"
+                        }
     except Exception as e:
         print(f"Error fetching medicine details: {e}")
-        
     return None

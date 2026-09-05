@@ -3,24 +3,24 @@ import io
 import re
 import os
 import ast
+import csv
 
-from services.ml_service import medications_df
+from services.ml_service import medications_data
 
 medicine_catalog = []
 _unique_meds = set()
 
-# 1. Load Kaggle Subset
-if medications_df is not None:
-    for _row in medications_df['Medication']:
+# 1. Load Kaggle Subset from ml_service
+if medications_data:
+    for row in medications_data:
         try:
-            _meds_list = ast.literal_eval(_row)
+            _meds_list = ast.literal_eval(row.get('Medication', ''))
             for _m in _meds_list:
                 _unique_meds.add(str(_m).strip())
         except Exception:
             pass
 
 # 2. Load Extended Proprietary Catalogs
-import pandas as pd
 from pathlib import Path
 
 try:
@@ -29,21 +29,25 @@ try:
     # Dataset 1: Large generic medicine database
     med_db_path = base_dir / "data" / "medicine_dataset.csv"
     if med_db_path.exists():
-        med_db = pd.read_csv(med_db_path)
-        for med_name in med_db['Name'].dropna():
-            if isinstance(med_name, str) and len(med_name) > 2:
-                _unique_meds.add(med_name.strip())
+        with open(med_db_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                med_name = row.get('Name')
+                if med_name and len(med_name) > 2:
+                    _unique_meds.add(med_name.strip())
                 
     # Dataset 2: 11k+ specific commercial medicines
     details_db_path = base_dir / "data" / "Medicine_Details.csv"
     if details_db_path.exists():
-        details_db = pd.read_csv(details_db_path)
-        for med_name in details_db['Medicine Name'].dropna():
-            if isinstance(med_name, str) and len(med_name) > 2:
-                # Some medicines have long scientific names; we only take the primary brand name before space or parenthesis
-                primary_name = med_name.split()[0].split('(')[0]
-                if len(primary_name) > 2:
-                    _unique_meds.add(primary_name.strip())
+        with open(details_db_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                med_name = row.get('Medicine Name')
+                if med_name and len(med_name) > 2:
+                    # Some medicines have long scientific names; we only take the primary brand name before space or parenthesis
+                    primary_name = med_name.split()[0].split('(')[0]
+                    if len(primary_name) > 2:
+                        _unique_meds.add(primary_name.strip())
 except Exception as e:
     print(f"OCR: Could not load extended medicine DBs: {e}")
 
