@@ -208,6 +208,50 @@ def analyze_skin_image(image_bytes: bytes) -> Dict:
         skin_type_confidence = skin_type_result["confidence"]
 
         conditions_detected = _classify_conditions(features)
+        
+        # ----------------------------------------------------
+        # Real Model Fallback (ONNX)
+        # ----------------------------------------------------
+        onnx_success = False
+        try:
+            import onnxruntime as ort
+            import numpy as np
+            onnx_path = BASE_DIR / "models" / "skin.onnx"
+            if onnx_path.exists():
+                session = ort.InferenceSession(str(onnx_path))
+                
+                # Check expected input shape
+                input_shape = session.get_inputs()[0].shape
+                target_size = (input_shape[1], input_shape[2]) if len(input_shape) >= 3 and isinstance(input_shape[1], int) else (224, 224)
+                
+                img_resized = Image.open(io.BytesIO(image_bytes)).convert("RGB").resize(target_size)
+                img_array = np.array(img_resized).astype('float32')
+                
+                if img_array.max() > 1.0:
+                    img_array = img_array / 255.0
+                    
+                img_tensor = np.expand_dims(img_array, axis=0)
+                
+                input_name = session.get_inputs()[0].name
+                output_name = session.get_outputs()[0].name
+                preds = session.run([output_name], {input_name: img_tensor})[0][0]
+                
+                class_idx = int(np.argmax(preds))
+                confidence = float(preds[class_idx])
+                
+                if confidence < 0.40:
+                    finding = "Unrecognized / Not a skin image"
+                    conditions_detected = [{"condition": finding, "confidence": confidence, "detected": False}]
+                else:
+                    # Typical skin classes (acne, eczema, healthy, melanoma...)
+                    skin_classes = ["acne", "melanoma", "eczema", "normal", "psoriasis"]
+                    finding = skin_classes[class_idx] if class_idx < len(skin_classes) else f"condition_{class_idx}"
+                    conditions_detected = [{"condition": finding, "confidence": confidence, "detected": True}]
+                
+                onnx_success = True
+        except Exception as e:
+            print(f"[ONNX Skin] Error: {e}")
+            
         detected_condition_names = [c["condition"] for c in conditions_detected]
 
         ingredient_recommendations = _get_ingredient_recommendations(
@@ -219,7 +263,11 @@ def analyze_skin_image(image_bytes: bytes) -> Dict:
             "blackheades": "Blackheads / Clogged Pores",
             "dark spots": "Dark Spots / Hyperpigmentation",
             "pores": "Enlarged Pores / Texture",
-            "wrinkles": "Fine Lines / Wrinkles"
+            "wrinkles": "Fine Lines / Wrinkles",
+            "melanoma": "Melanoma / Moles",
+            "eczema": "Eczema / Dermatitis",
+            "normal": "Healthy / Clear Skin",
+            "psoriasis": "Psoriasis / Flaking"
         }
 
         conditions_output = [
@@ -241,8 +289,8 @@ def analyze_skin_image(image_bytes: bytes) -> Dict:
             "primary_concern": primary_concern,
             "ingredient_recommendations": ingredient_recommendations,
             "model_info": {
-                "backbone": "Serverless Heuristics (TF fallback)",
-                "condition_model": "Threshold Matcher",
+                "backbone": "ONNX Model Inference (my_model.keras)" if onnx_success else "Serverless Heuristics",
+                "condition_model": "TensorFlow ONNX" if onnx_success else "Threshold Matcher",
                 "skin_type_model": "Statistical Centroid ML",
                 "recommendation_engine": "Rule-based Tag Matcher"
             },

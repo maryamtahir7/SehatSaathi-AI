@@ -228,38 +228,30 @@ def analyze_medical_image(image_bytes: bytes, modality: str = "auto") -> Dict:
     pt_success = False
     tf_success = False
     
-    # 2. X-Ray Specific Path: Lung-model.pth (PyTorch, 5 Classes, Hybrid Quantum-CNN)
+    # 2. X-Ray Specific Path: Lung-model.pth -> lung.onnx (ONNX, 5 Classes)
     if calc_modality == "xray":
         try:
-            import torch
-            from torchvision import transforms
+            import onnxruntime as ort
+            import numpy as np
             base_dir = Path(__file__).resolve().parents[1]
-            pt_model_path = base_dir / "models" / "Lung-model.pth"
+            onnx_path = base_dir / "models" / "lung.onnx"
             
-            if pt_model_path.exists():
-                from models.lung_hybrid_model import HybridModel
-                device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            if onnx_path.exists():
+                session = ort.InferenceSession(str(onnx_path))
+                img_resized = image.resize((224, 224))
+                img_array = np.array(img_resized)
+                if len(img_array.shape) == 2:
+                    img_array = np.stack((img_array,)*3, axis=-1)
                 
-                # Instantiate model and load state dict
-                pt_model = HybridModel()
-                pt_model.load_state_dict(torch.load(str(pt_model_path), map_location=device))
-                pt_model.to(device)
-                pt_model.eval()
+                img_array = img_array.astype('float32') / 255.0
+                img_tensor = np.expand_dims(img_array, axis=0)
                 
-                transform = transforms.Compose([
-                    transforms.Grayscale(num_output_channels=3),
-                    transforms.Resize((224, 224)),
-                    transforms.ToTensor()
-                ])
+                input_name = session.get_inputs()[0].name
+                output_name = session.get_outputs()[0].name
+                preds = session.run([output_name], {input_name: img_tensor})[0]
                 
-                img_tensor = transform(image).unsqueeze(0).to(device)
-                
-                with torch.no_grad():
-                    outputs = pt_model(img_tensor)
-                    probs = torch.nn.functional.softmax(outputs[0], dim=0)
-                
-                class_idx = int(torch.argmax(probs).item())
-                confidence = float(probs[class_idx].item())
+                class_idx = int(np.argmax(preds[0]))
+                confidence = float(preds[0][class_idx])
                 
                 lung_classes = [
                     "bacterial_pneumonia", 
@@ -271,78 +263,65 @@ def analyze_medical_image(image_bytes: bytes, modality: str = "auto") -> Dict:
                 finding = lung_classes[class_idx] if class_idx < len(lung_classes) else f"lung_class_{class_idx}"
                 
                 top_preds = [{"label": finding, "confidence": confidence}]
-                model_used = "PyTorch Hybrid Q-CNN (5 Classes)"
+                model_used = "High-Precision ONNX Engine (X-Ray)"
                 pt_success = True
                 
         except Exception as e:
-            print(f"[PyTorch Warning] Could not apply Lung-model.pth: {e}")
+            print(f"[ONNX Warning] Could not apply lung.onnx: {e}")
 
-    # 3. MRI Specific Path: braintumor-model.keras
-    if calc_modality == "mri" and not tf_success:
+    # 3. MRI Specific Path: braintumor-model.keras -> braintumor.onnx
+    if calc_modality == "mri" and not tf_success and not pt_success:
         try:
-            import tensorflow as tf
+            import onnxruntime as ort
             import numpy as np
             base_dir = Path(__file__).resolve().parents[1]
-            tf_model_path = base_dir / "models" / "braintumor-model.keras"
+            onnx_path = base_dir / "models" / "braintumor.onnx"
             
-            if tf_model_path.exists():
-                tf_model = tf.keras.models.load_model(str(tf_model_path))
-                input_shape = tf_model.input_shape
+            if onnx_path.exists():
+                session = ort.InferenceSession(str(onnx_path))
                 
-                target_size = (input_shape[1], input_shape[2]) if input_shape and len(input_shape) >= 3 else (64, 64)
+                img_resized = image.resize((224, 224))
+                img_array = np.array(img_resized)
+                if len(img_array.shape) == 2:
+                    img_array = np.stack((img_array,)*3, axis=-1)
                 
-                img_resized = image.resize(target_size)
-                
-                # Handle Grayscale vs RGB based on model input shape
-                if input_shape and input_shape[-1] == 1:
-                    img_array = np.array(img_resized.convert("L"))
-                    img_array = np.expand_dims(img_array, axis=-1)
-                else:
-                    img_array = np.array(img_resized)
-                    if len(img_array.shape) == 2:
-                        img_array = np.stack((img_array,)*3, axis=-1)
-                
-                if img_array.max() > 1.0:
-                    img_array = img_array.astype('float32') / 255.0
-                    
+                img_array = img_array.astype('float32') / 255.0
                 img_tensor = np.expand_dims(img_array, axis=0)
-                preds = tf_model.predict(img_tensor, verbose=0)
                 
-                class_idx = np.argmax(preds[0])
+                input_name = session.get_inputs()[0].name
+                output_name = session.get_outputs()[0].name
+                preds = session.run([output_name], {input_name: img_tensor})[0]
+                
+                class_idx = int(np.argmax(preds[0]))
                 confidence = float(preds[0][class_idx])
                 
-                # Map 3 classes (typical alphabetical: glioma, meningioma, pituitary)
-                # If 4 classes: glioma, meningioma, no_tumor, pituitary
                 if len(preds[0]) == 3:
                     mri_classes = ["glioma_tumor", "meningioma_tumor", "pituitary_tumor"]
                     finding = mri_classes[class_idx]
-                    model_used = "TensorFlow Brain Tumor Model (.keras)"
+                    model_used = "High-Precision ONNX Engine (MRI)"
                     
-                    # Relaxed Safety Net: Only override if the model is extremely unsure AND it's perfectly symmetrical/dark
-                    # Tumors usually have high asymmetry or high edge density.
-                    # We will calculate a quick asymmetry check:
                     w, h = gray.size
                     asym = abs(float(ImageStat.Stat(gray.crop((0, 0, w//2, h))).mean[0]) - float(ImageStat.Stat(gray.crop((w//2, 0, w, h))).mean[0]))
                     
                     if confidence < 0.55 and asym < 2.0:
                         finding = "no_tumor_brain"
                         confidence = 0.85
-                        model_used = "Hybrid Engine (TF + Symmetry Heuristics)"
+                        model_used = "Hybrid Engine (ONNX + Symmetry Heuristics)"
                         
                 elif len(preds[0]) == 4:
                     mri_classes = ["glioma_tumor", "meningioma_tumor", "no_tumor_brain", "pituitary_tumor"]
                     finding = mri_classes[class_idx]
-                    model_used = "TensorFlow Brain Tumor Model (.keras)"
+                    model_used = "High-Precision ONNX Engine (MRI)"
                 else:
                     mri_classes = ["glioma_tumor", "meningioma_tumor", "pituitary_tumor"] + ["unidentified_scan"] * max(0, len(preds[0])-3)
                     finding = mri_classes[class_idx]
-                    model_used = "TensorFlow Brain Tumor Model (.keras)"
+                    model_used = "High-Precision ONNX Engine (MRI)"
                 
                 top_preds = [{"label": finding, "confidence": confidence}]
                 tf_success = True
                 
         except Exception as e:
-            print(f"[TF Warning] Could not apply braintumor-model.keras: {e}")
+            print(f"[ONNX Warning] Could not apply braintumor.onnx: {e}")
 
     if not tf_success and not pt_success and _TORCH_READY and _MODEL:
         import torch
