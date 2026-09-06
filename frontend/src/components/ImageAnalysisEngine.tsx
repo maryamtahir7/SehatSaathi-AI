@@ -347,6 +347,7 @@ export default function ImageAnalysisEngine({ type, title, classes }: ImageAnaly
                       </div>
                     )}
                   </div>
+                )}
               </div>
             )}
         </div>
