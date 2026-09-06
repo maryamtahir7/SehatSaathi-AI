@@ -14,22 +14,22 @@ def get_mime_type(image_bytes: bytes) -> str:
     return 'image/jpeg' # fallback
 
 def gemini_extract_text(image_bytes: bytes) -> str:
-    """Use OpenAI API to extract text from a prescription image (Function kept same name for compatibility)."""
-    api_key = os.getenv("OPENAI_API_KEY", "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")
-    url = "https://api.openai.com/v1/chat/completions"
+    """Use Groq Vision API to extract text from a prescription image (Function kept same name for compatibility)."""
+    api_key = os.getenv("GROQ_API_KEY", "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")
+    url = "https://api.groq.com/openai/v1/chat/completions"
 
     b64_img = base64.b64encode(image_bytes).decode("utf-8")
     mime_type = get_mime_type(image_bytes)
 
     payload = {
-        "model": "gpt-4o-mini",
+        "model": "llama-3.2-90b-vision-preview",
         "messages": [
             {
                 "role": "user",
                 "content": [
                     {
                         "type": "text",
-                        "text": "This is a medical prescription image. Please extract ALL text from it exactly as written, especially medicine names, dosages, and instructions. Return only the extracted text."
+                        "text": "This is a medical prescription image. Please extract ALL text from it exactly as written, especially medicine names, dosages, and instructions. Return only the extracted text. Do not add any conversational text."
                     },
                     {
                         "type": "image_url",
@@ -55,6 +55,6 @@ def gemini_extract_text(image_bytes: bytes) -> str:
             data = response.json()
             return data["choices"][0]["message"]["content"]
         else:
-            return f"ERROR: OpenAI API status {response.status_code}: {response.text[:200]}"
+            return f"ERROR: Groq API status {response.status_code}: {response.text[:200]}"
     except Exception as e:
-        return f"ERROR: OpenAI OCR failed: {str(e)}"
+        return f"ERROR: Groq OCR failed: {str(e)}"
