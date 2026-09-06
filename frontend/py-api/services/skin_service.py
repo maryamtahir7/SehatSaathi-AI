@@ -243,8 +243,8 @@ def analyze_skin_image(image_bytes: bytes) -> Dict:
                 
                 onnx_success = True
         except Exception as e:
-            onnx_skin_error = str(e)
-            print(f"[ONNX Skin] Error: {e}")
+            # RETURN THE ERROR SO VERCEL FAILS LOUDLY AND WE SEE IT!
+            return {"error": f"ONNX Runtime Error on Vercel: {str(e)}"}
             
         detected_condition_names = [c["condition"] for c in conditions_detected]
 

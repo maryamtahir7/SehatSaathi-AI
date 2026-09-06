@@ -264,8 +264,7 @@ def analyze_medical_image(image_bytes: bytes, modality: str = "auto") -> Dict:
                 pt_success = True
                 
         except Exception as e:
-            onnx_xray_error = str(e)
-            print(f"[ONNX Warning] Could not apply lung.onnx: {e}")
+            return {"error": f"ONNX Runtime Error on XRAY: {str(e)}"}
 
     # 3. MRI Specific Path: braintumor-model.keras -> braintumor.onnx
     if calc_modality == "mri" and not tf_success and not pt_success:
@@ -316,8 +315,7 @@ def analyze_medical_image(image_bytes: bytes, modality: str = "auto") -> Dict:
                 tf_success = True
                 
         except Exception as e:
-            onnx_mri_error = str(e)
-            print(f"[ONNX Warning] Could not apply braintumor.onnx: {e}")
+            return {"error": f"ONNX Runtime Error on MRI: {str(e)}"}
 
     if not tf_success and not pt_success and _TORCH_READY and _MODEL:
         import torch

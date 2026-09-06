@@ -63,7 +63,13 @@ export default function ImageAnalysisEngine({ type, title, classes }: ImageAnaly
       });
 
       if (!response.ok) {
-        throw new Error('Analysis failed. Please try again.');
+        let errMsg = 'Analysis failed. Please try again.';
+        try {
+            const errData = await response.json();
+            if (errData.detail) errMsg = errData.detail;
+            else if (errData.error) errMsg = errData.error;
+        } catch(e) {}
+        throw new Error(errMsg);
       }
 
       const data = await response.json();
