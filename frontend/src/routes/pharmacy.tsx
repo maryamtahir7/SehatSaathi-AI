@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/site/page-shell";
 import { formatPKR, useApp } from "@/lib/app-context";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { productService, databases, DB, COL } from "@/lib/appwrite";
 
 export const Route = createFileRoute("/pharmacy")({
@@ -39,6 +40,7 @@ function Pharmacy() {
   const { addToCart, t } = useApp();
   const [cat, setCat] = useState<string>("All");
   const [q, setQ] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [appwriteCategories, setAppwriteCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -169,7 +171,10 @@ function Pharmacy() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.04, 0.3) }}
               >
-                <Card className="card-hover h-full gap-3 flex flex-col rounded-3xl border-border/60 p-5 shadow-soft">
+                <Card 
+                  className="card-hover h-full gap-3 flex flex-col rounded-3xl border-border/60 p-5 shadow-soft cursor-pointer"
+                  onClick={() => setSelectedProduct(p)}
+                >
                   <div className="flex h-32 items-center justify-center rounded-2xl bg-primary-soft/70 text-5xl overflow-hidden">
                     {(p.imageUrl || p.image_url) ? (
                       <img src={productService.getImageUrl(p.imageUrl || p.image_url)} alt={p.name} className="h-full w-full object-cover" />
@@ -190,7 +195,7 @@ function Pharmacy() {
                     <Button
                       size="sm"
                       className="gap-1.5 rounded-full transition-transform hover:scale-[1.05]"
-                      onClick={() => addToCart({ id: p.id, name: p.name, price: p.price })}
+                      onClick={(e) => { e.stopPropagation(); addToCart({ id: p.$id || p.id, name: p.name, price: p.price, image: p.imageUrl || p.image_url }); }}
                     >
                       <Plus className="size-4" /> {t("add_to_cart")}
                     </Button>

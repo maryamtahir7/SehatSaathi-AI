@@ -70,9 +70,10 @@ function Diet() {
 - Medical Conditions / Restrictions: ${conditions}
 
 CRITICAL FORMATTING INSTRUCTIONS:
-Do NOT use tables. Format each meal (e.g., Breakfast, Mid-Morning Snack, Lunch, Afternoon Snack, Dinner) using an H3 heading (###) that includes the meal name and calorie count (e.g., "### 🌅 Breakfast (350 kcal)").
-Under each meal heading, use a bulleted list (-) for the food items and portions.
-At the end, add an H3 heading for "📊 Nutritional Summary" and one for "💡 Diet Tips" using the same format.`;
+Please provide a highly detailed and visually appealing diet plan. Use emojis for headings.
+For each meal (Breakfast, Mid-Morning Snack, Lunch, Afternoon Snack, Dinner), use an H3 heading (###) with an emoji and the calorie count (e.g., "### 🌅 Breakfast (350 kcal)").
+Under each meal heading, provide a detailed bulleted list (-) of the food items, exact portions, and ingredients. Add preparation tips if necessary.
+At the end, add an H3 heading for "📊 Nutritional Summary" and one for "💡 Diet Tips" with actionable advice.`;
 
     try {
       const res = await fetch("/api/assistant/chat", {

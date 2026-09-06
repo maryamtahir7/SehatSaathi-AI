@@ -81,10 +81,10 @@ function AdminDashboard() {
     setLoading(true);
     try {
       const [pRes, oRes, uRes, cRes] = await Promise.all([
-        databases.listDocuments(DB, COL.products, [Query.orderDesc("$createdAt"), Query.limit(100)]),
-        databases.listDocuments(DB, COL.orders, [Query.orderDesc("$createdAt"), Query.limit(100)]),
-        databases.listDocuments(DB, COL.patients, [Query.orderDesc("$createdAt"), Query.limit(100)]).catch(() => ({ documents: [] })),
-        databases.listDocuments(DB, COL.categories, [Query.orderDesc("$createdAt"), Query.limit(100)]).catch(() => ({ documents: [] })),
+        databases.listDocuments(DB, COL.products, [Query.orderDesc("$createdAt"), Query.limit(100)]).catch(e => { console.error("Products error", e); return { documents: [] }; }),
+        databases.listDocuments(DB, COL.orders, [Query.orderDesc("$createdAt"), Query.limit(100)]).catch(e => { console.error("Orders error", e); return { documents: [] }; }),
+        databases.listDocuments(DB, COL.patients, [Query.orderDesc("$createdAt"), Query.limit(100)]).catch(e => { console.error("Patients error", e); return { documents: [] }; }),
+        databases.listDocuments(DB, COL.categories, [Query.orderDesc("$createdAt"), Query.limit(100)]).catch(e => { console.error("Categories error", e); return { documents: [] }; }),
       ]);
       setProducts(pRes.documents as any);
       setOrders(oRes.documents as any);

@@ -74,7 +74,7 @@ function Chat() {
 
   // Voice input
   const toggleVoice = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Voice input not supported in this browser. Please use Chrome.");
       return;
@@ -91,10 +91,11 @@ function Chat() {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    recognition.onresult = (e) => {
+    recognition.onresult = (e: any) => {
       const transcript = e.results[0][0].transcript;
       setInput(transcript);
       setListening(false);
+      send(transcript); // Auto-send the transcribed text
     };
     recognition.onend = () => setListening(false);
     recognition.onerror = () => setListening(false);
