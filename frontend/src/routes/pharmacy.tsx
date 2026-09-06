@@ -127,8 +127,8 @@ function Pharmacy() {
                     : "border-border/70 bg-background/50 text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
                 }`}
               >
-                {(c.image || c.image_url) && (
-                  <img src={productService.getImageUrl(c.image || c.image_url)} alt={c.name} className="size-6 rounded-full object-cover" />
+                {(c.image || c.imageUrl || c.image_url) && (
+                  <img src={productService.getImageUrl(c.image || c.imageUrl || c.image_url)} alt={c.name} className="size-6 rounded-full object-cover" />
                 )}
                 {c.name}
               </button>
@@ -171,8 +171,8 @@ function Pharmacy() {
               >
                 <Card className="card-hover h-full gap-3 flex flex-col rounded-3xl border-border/60 p-5 shadow-soft">
                   <div className="flex h-32 items-center justify-center rounded-2xl bg-primary-soft/70 text-5xl overflow-hidden">
-                    {p.image_url ? (
-                      <img src={productService.getImageUrl(p.image_url)} alt={p.name} className="h-full w-full object-cover" />
+                    {(p.imageUrl || p.image_url) ? (
+                      <img src={productService.getImageUrl(p.imageUrl || p.image_url)} alt={p.name} className="h-full w-full object-cover" />
                     ) : (
                       p.emoji || "💊"
                     )}

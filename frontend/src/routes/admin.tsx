@@ -21,9 +21,10 @@ export const Route = createFileRoute("/admin")({
   component: AdminPortal,
 });
 
-type Product = { $id: string; name: string; brand?: string; price: number; category?: string; description?: string; image_url?: string; emoji?: string };
+type Product = { $id: string; name: string; brand?: string; price: number; category?: string; description?: string; image_url?: string; imageUrl?: string; emoji?: string };
 type Order   = { $id: string; $createdAt: string; userId?: string; items?: string; total?: number; status?: string };
 type User    = { $id: string; name?: string; email?: string; $createdAt?: string };
+type Category = { $id: string; name: string; imageUrl?: string; $createdAt?: string };
 
 function AdminPortal() {
   const { user, authLoading } = useApp();
@@ -53,6 +54,7 @@ function AdminDashboard() {
   const [products, setProducts]   = useState<Product[]>([]);
   const [orders, setOrders]       = useState<Order[]>([]);
   const [users, setUsers]         = useState<User[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading]     = useState(true);
   const [tab, setTab]             = useState("dashboard");
 
@@ -78,20 +80,18 @@ function AdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [pr, or] = await Promise.all([
-        productService.list(100),
-        orderService.list(),
+      const [pRes, oRes, uRes, cRes] = await Promise.all([
+        databases.listDocuments(DB, COL.products, [Query.orderDesc("$createdAt"), Query.limit(100)]),
+        databases.listDocuments(DB, COL.orders, [Query.orderDesc("$createdAt"), Query.limit(100)]),
+        databases.listDocuments(DB, COL.patients, [Query.orderDesc("$createdAt"), Query.limit(100)]).catch(() => ({ documents: [] })),
+        databases.listDocuments(DB, COL.categories, [Query.orderDesc("$createdAt"), Query.limit(100)]).catch(() => ({ documents: [] })),
       ]);
-      setProducts(pr.documents as unknown as Product[]);
-      setOrders(or.documents as unknown as Order[]);
-
-      // Load users (patients collection)
-      try {
-        const ur = await databases.listDocuments(DB, COL.users, [Query.limit(50)]);
-        setUsers(ur.documents as unknown as User[]);
-      } catch { /* users collection may not exist yet */ }
+      setProducts(pRes.documents as any);
+      setOrders(oRes.documents as any);
+      setUsers(uRes.documents as any);
+      setCategories(cRes.documents as any);
     } catch (e) {
-      console.error("Admin load error:", e);
+      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -104,7 +104,7 @@ function AdminDashboard() {
   const saveProduct = async () => {
     if (!pName || !pPrice) return;
     setSaving(true);
-    const data = { name: pName, brand: pBrand, price: parseFloat(pPrice), category: pCategory, description: pDesc, image_url: pImage };
+    const data = { name: pName, brand: pBrand, price: parseFloat(pPrice), category: pCategory, description: pDesc, imageUrl: pImage };
     try {
       if (editId) {
         await productService.update(editId, data);
@@ -125,14 +125,14 @@ function AdminDashboard() {
 
   const startEdit = (p: Product) => {
     setEditId(p.$id); setPName(p.name); setPBrand(p.brand || "");
-    setPPrice(String(p.price)); setPCategory(p.category || "General"); setPDesc(p.description || ""); setPImage(p.image_url || "");
+    setPPrice(String(p.price)); setPCategory(p.category || "General"); setPDesc(p.description || ""); setPImage(p.imageUrl || p.image_url || "");
     setTab("products");
   };
 
   const stats = [
     { label: "Total Products", value: products.length, icon: Package, color: "text-blue-500" },
     { label: "Total Orders", value: orders.length, icon: ShoppingBag, color: "text-green-500" },
-    { label: "Registered Users", value: users.length, icon: Users, color: "text-purple-500" },
+    { label: "Categories", value: categories.length, icon: Tag, color: "text-purple-500" },
     { label: "Revenue (est.)", value: formatPKR(orders.reduce((s, o) => s + (o.total || 0), 0)), icon: Tag, color: "text-amber-500" },
   ];
 
@@ -161,6 +161,7 @@ function AdminDashboard() {
           <TabsList className="mb-8 rounded-full">
             <TabsTrigger value="dashboard" className="gap-2 rounded-full"><LayoutDashboard className="size-3.5" />Dashboard</TabsTrigger>
             <TabsTrigger value="products"  className="gap-2 rounded-full"><Package className="size-3.5" />Products</TabsTrigger>
+            <TabsTrigger value="categories" className="gap-2 rounded-full"><Tag className="size-3.5" />Categories</TabsTrigger>
             <TabsTrigger value="orders"    className="gap-2 rounded-full"><ShoppingBag className="size-3.5" />Orders</TabsTrigger>
             <TabsTrigger value="users"     className="gap-2 rounded-full"><Users className="size-3.5" />Users</TabsTrigger>
           </TabsList>
@@ -196,7 +197,9 @@ function AdminDashboard() {
                   <div><Label>Price (PKR) *</Label><Input value={pPrice} onChange={e=>setPPrice(e.target.value)} type="number" placeholder="150" className="mt-1 rounded-xl" /></div>
                   <div><Label>Category</Label>
                     <select value={pCategory} onChange={e=>setPCategory(e.target.value)} className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
-                      {["General","Prescription","Vitamins","Supplements","First Aid","Devices"].map(c=><option key={c}>{c}</option>)}
+                      <option value="">Select a Category</option>
+                      {categories.map(c=><option key={c.$id} value={c.name}>{c.name}</option>)}
+                      {categories.length === 0 && ["General","Prescription","Vitamins","Supplements","First Aid","Devices"].map(c=><option key={c}>{c}</option>)}
                     </select>
                   </div>
                   <div><Label>Description</Label><Input value={pDesc} onChange={e=>setPDesc(e.target.value)} placeholder="Short description" className="mt-1 rounded-xl" /></div>
@@ -225,7 +228,7 @@ function AdminDashboard() {
                     <motion.div key={p.$id} initial={{ opacity:0 }} animate={{ opacity:1 }}>
                       <Card className="rounded-2xl border-border/60 p-4 shadow-soft flex items-center gap-4">
                         <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl bg-primary-soft/70 text-2xl shrink-0">
-                          {p.image_url ? <img src={productService.getImageUrl(p.image_url)} alt={p.name} className="h-full w-full object-cover" /> : (p.emoji || "💊")}
+                          {(p.imageUrl || p.image_url) ? <img src={productService.getImageUrl(p.imageUrl || p.image_url)} alt={p.name} className="h-full w-full object-cover" /> : (p.emoji || "💊")}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold truncate">{p.name}</p>
@@ -242,6 +245,30 @@ function AdminDashboard() {
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          {/* CATEGORIES */}
+          <TabsContent value="categories">
+            <h2 className="text-lg font-semibold mb-4">All Categories ({categories.length})</h2>
+            {loading ? (
+              <div className="flex justify-center py-10"><Loader2 className="size-6 animate-spin text-primary" /></div>
+            ) : categories.length === 0 ? (
+              <Card className="rounded-3xl border-border/60 p-8 text-center text-muted-foreground">No categories found in database.</Card>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {categories.map(c => (
+                  <Card key={c.$id} className="rounded-2xl border-border/60 p-4 shadow-soft flex items-center gap-4">
+                    <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl bg-primary-soft/70 text-2xl shrink-0">
+                      {c.imageUrl ? <img src={productService.getImageUrl(c.imageUrl)} alt={c.name} className="h-full w-full object-cover" /> : <Tag className="size-5 text-primary" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">{c.name}</p>
+                      {c.$createdAt && <p className="text-xs text-muted-foreground">{new Date(c.$createdAt).toLocaleDateString()}</p>}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* ORDERS */}

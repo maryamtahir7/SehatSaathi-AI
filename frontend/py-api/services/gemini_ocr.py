@@ -22,7 +22,7 @@ def gemini_extract_text(image_bytes: bytes) -> str:
     mime_type = get_mime_type(image_bytes)
 
     payload = {
-        "model": "llama-3.2-90b-vision-preview",
+        "model": "llama-3.2-11b-vision-preview",
         "messages": [
             {
                 "role": "user",
