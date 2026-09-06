@@ -276,12 +276,14 @@ def analyze_skin_image(image_bytes: bytes) -> Dict:
         primary_concern = conditions_output[0]["condition"] if conditions_output else "General Skin Wellness"
 
         return {
-            "skin_type": skin_type,
-            "skin_type_confidence": skin_type_confidence,
-            "skin_type_probabilities": skin_type_result.get("all_probabilities", {}),
-            "conditions_detected": conditions_output,
-            "primary_concern": primary_concern,
-            "ingredient_recommendations": ingredient_recommendations,
+              "skin_type": skin_type,
+              "skin_type_confidence": skin_type_confidence,
+              "skin_type_probabilities": skin_type_result.get("all_probabilities", {}),
+              "conditions_detected": conditions_output,
+              "primary_concern": primary_concern,
+              "finding": primary_concern,
+              "confidence": conditions_output[0]["confidence"] if conditions_output else 0.0,
+              "ingredient_recommendations": ingredient_recommendations,
             "model_info": {
                 "backbone": "ONNX Model Inference (my_model.keras)" if onnx_success else "Serverless Heuristics",
                 "condition_model": "TensorFlow ONNX" if onnx_success else "Threshold Matcher",
