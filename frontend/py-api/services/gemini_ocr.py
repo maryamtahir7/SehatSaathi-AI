@@ -1,4 +1,4 @@
-﻿import os
+import os
 import base64
 import requests
 
@@ -18,7 +18,7 @@ def gemini_extract_text(image_bytes: bytes) -> str:
     api_key = os.getenv("GEMINI_API_KEY", "AIzaSyCP0pJHOZ80KgTXQBDwlhtYR-c1iWb2YyU")
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"gemini-1.5-flash:generateContent?key={api_key}"
+        f"gemini-flash-latest:generateContent?key={api_key}"
     )
 
     b64_img = base64.b64encode(image_bytes).decode("utf-8")
