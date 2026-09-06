@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Flame, Loader2, Printer, Salad, Sparkles } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { AlertTriangle, Flame, Loader2, Printer, Salad, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
-import { mealPlan } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/diet")({
   head: () => ({
@@ -40,6 +41,8 @@ function Diet() {
   const [picked, setPicked] = useState<string[]>(["Diabetes"]);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [aiPlan, setAiPlan] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const bmr =
     form.gender === "male"
@@ -49,13 +52,40 @@ function Diet() {
     (bmr * 1.35 + (form.goal === "loss" ? -450 : form.goal === "gain" ? 400 : 0)) / 10,
   ) * 10;
 
-  const generate = () => {
+  const generate = async () => {
     setLoading(true);
     setDone(false);
-    window.setTimeout(() => {
-      setLoading(false);
+    setError(null);
+    setAiPlan(null);
+
+    const goalLabel = form.goal === "loss" ? "Weight Loss" : form.goal === "gain" ? "Weight Gain" : "Maintenance";
+    const conditions = picked.length > 0 ? picked.join(", ") : "None";
+    const prompt = `Create a detailed, practical 1-day meal plan for a patient with these parameters:
+- Age: ${form.age} years
+- Weight: ${form.weight} kg
+- Height: ${form.height} cm
+- Gender: ${form.gender}
+- Goal: ${goalLabel}
+- Target Calories: ${target} kcal/day
+- Medical Conditions / Restrictions: ${conditions}
+
+Format the plan clearly with Breakfast, Lunch, Dinner, and Snacks. For each meal, list the foods, approximate portions, and calorie estimates. At the end, add a brief nutritional summary and 3 key diet tips for the patient's conditions. Use Markdown formatting.`;
+
+    try {
+      const res = await fetch("/api/assistant/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: prompt, language: "en", history: [] }),
+      });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+      setAiPlan(data.response ?? "Could not generate a plan.");
       setDone(true);
-    }, 1600);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to generate diet plan. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -135,21 +165,35 @@ function Diet() {
         </Card>
 
         <div className="space-y-6 lg:col-span-3">
-          {!done ? (
+          {error && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <Card className="flex items-start gap-3 rounded-3xl border-destructive/40 bg-destructive/5 p-6">
+                <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" />
+                <div>
+                  <p className="font-semibold text-destructive">Generation Failed</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+
+          {!done && !error && (
             <Card className="flex min-h-[22rem] flex-col items-center justify-center gap-3 rounded-3xl border-border/60 p-8 text-center shadow-soft">
               <span className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
                 <Salad className="size-6" />
               </span>
               <p className="max-w-xs text-sm text-muted-foreground">
-                Fill in your details to generate a personalised daily meal plan.
+                Fill in your details and click <strong>Generate Custom Diet Plan</strong> to get your personalized AI meal plan.
               </p>
             </Card>
-          ) : (
+          )}
+
+          {done && aiPlan && (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <Card className="rounded-3xl border-border/60 p-7 shadow-lift">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold">Your daily plan</h2>
+                    <h2 className="text-lg font-semibold">Your AI Diet Plan</h2>
                     <p className="text-sm text-muted-foreground">
                       {picked.length ? picked.join(" · ") : "No restrictions"} · {form.goal === "loss" ? "Weight loss" : form.goal === "gain" ? "Weight gain" : "Maintenance"}
                     </p>
@@ -164,40 +208,25 @@ function Diet() {
                   </div>
                 </div>
 
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  {mealPlan.map((m, i) => (
-                    <motion.div
-                      key={m.slot}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.07 }}
-                      className="card-hover rounded-2xl border border-border/60 bg-secondary/40 p-5"
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-semibold tracking-widest text-primary">{m.slot.toUpperCase()}</p>
-                        <span className="text-xl">{m.emoji}</span>
-                      </div>
-                      <p className="mt-2 font-semibold">{m.title}</p>
-                      <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                        {m.items.map((it) => (
-                          <li key={it} className="flex gap-2">
-                            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary/70" />
-                            {it}
-                          </li>
-                        ))}
-                      </ul>
-                      <p className="mt-4 text-sm font-semibold">{m.calories} kcal</p>
-                    </motion.div>
-                  ))}
-                  <div className="flex flex-col justify-center rounded-2xl border border-primary/25 bg-primary-soft/60 p-5">
-                    <p className="text-xs font-semibold tracking-widest text-accent-foreground">DAILY TOTAL</p>
-                    <p className="mt-1 font-display text-3xl font-semibold">
-                      {mealPlan.reduce((n, m) => n + m.calories, 0)} kcal
-                    </p>
-                    <p className="mt-2 text-sm text-accent-foreground/80">
-                      Protein 32% · Carbs 44% · Fats 24% · Water 3L
-                    </p>
-                  </div>
+                <div className="mt-6 prose prose-sm max-w-none dark:prose-invert">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({ ...props }) => <h1 className="text-lg font-bold mb-3 mt-5 text-foreground" {...props} />,
+                      h2: ({ ...props }) => <h2 className="text-base font-bold mb-2 mt-4 text-foreground" {...props} />,
+                      h3: ({ ...props }) => <h3 className="text-sm font-bold mb-2 mt-3 text-foreground" {...props} />,
+                      p: ({ ...props }) => <p className="mb-3 text-muted-foreground last:mb-0" {...props} />,
+                      ul: ({ ...props }) => <ul className="list-disc pl-5 mb-3 space-y-1 text-muted-foreground" {...props} />,
+                      ol: ({ ...props }) => <ol className="list-decimal pl-5 mb-3 space-y-1 text-muted-foreground" {...props} />,
+                      li: ({ ...props }) => <li className="pl-1" {...props} />,
+                      strong: ({ ...props }) => <strong className="font-semibold text-foreground" {...props} />,
+                      table: ({ ...props }) => <div className="overflow-x-auto my-3"><table className="w-full border-collapse text-xs" {...props} /></div>,
+                      th: ({ ...props }) => <th className="border border-border/50 bg-secondary px-3 py-2 text-left font-semibold text-foreground" {...props} />,
+                      td: ({ ...props }) => <td className="border border-border/50 px-3 py-2 text-muted-foreground" {...props} />,
+                    }}
+                  >
+                    {aiPlan}
+                  </ReactMarkdown>
                 </div>
               </Card>
               <Disclaimer />

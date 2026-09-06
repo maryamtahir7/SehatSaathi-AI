@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Loader2, MessageCircle, Plus, Search, Sparkles, X } from "lucide-react";
+import { AlertTriangle, Loader2, MessageCircle, Plus, Search, Sparkles, X } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -14,7 +14,17 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
-import { predictionBank, symptomOptions } from "@/lib/mock-data";
+import { symptomOptions } from "@/lib/mock-data";
+
+interface PredictionResult {
+  disease: string;
+  description: string;
+  precautions: string[];
+  medications: { name: string }[];
+  diets: string[];
+  workout: string[];
+  confidence: number;
+}
 
 export const Route = createFileRoute("/symptoms")({
   head: () => ({
@@ -33,10 +43,12 @@ export const Route = createFileRoute("/symptoms")({
 });
 
 function Symptoms() {
-  const [selected, setSelected] = useState<string[]>(["Fever", "Cough"]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [result, setResult] = useState<PredictionResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const suggestions = useMemo(
     () =>
@@ -46,33 +58,50 @@ function Symptoms() {
     [query, selected],
   );
 
-  const predictions = useMemo(() => {
-    const seed = selected.length;
-    return [...predictionBank]
-      .sort((a, b) => b.probability - a.probability)
-      .slice(seed % 2, (seed % 2) + 3);
-  }, [selected]);
-
   const add = (s: string) => {
     setSelected((prev) => (prev.includes(s) ? prev : [...prev, s]));
     setQuery("");
     setDone(false);
+    setResult(null);
+    setError(null);
   };
 
-  const predict = () => {
+  const predict = async () => {
+    if (!selected.length) return;
     setLoading(true);
     setDone(false);
-    window.setTimeout(() => {
-      setLoading(false);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await fetch("/predict-disease", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symptoms: selected }),
+      });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+      setResult({
+        disease: data.disease ?? "Unknown",
+        description: data.description ?? "No description available.",
+        precautions: Array.isArray(data.precautions) ? data.precautions : [],
+        medications: Array.isArray(data.medications) ? data.medications : [],
+        diets: Array.isArray(data.diets) ? data.diets : [],
+        workout: Array.isArray(data.workout) ? data.workout : [],
+        confidence: typeof data.confidence === "number" ? Math.round(data.confidence * 100) : 85,
+      });
       setDone(true);
-    }, 1800);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Prediction failed. Make sure the backend is running.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <PageShell
       eyebrow="Module 02"
       title="Symptom Checker & Disease Predictor"
-      description="Tell us what you're feeling. We compare your symptom pattern against thousands of clinical cases."
+      description="Tell us what you're feeling. Our ML model compares your symptom pattern against thousands of clinical cases."
       wide
     >
       <div className="grid gap-6 lg:grid-cols-2">
@@ -131,65 +160,111 @@ function Symptoms() {
             onClick={predict}
           >
             {loading ? (
-              <>
-                <Loader2 className="size-4 animate-spin" /> Analysing symptom pattern...
-              </>
+              <><Loader2 className="size-4 animate-spin" /> Analysing symptom pattern...</>
             ) : (
-              <>
-                <Sparkles className="size-4" /> Predict Disease
-              </>
+              <><Sparkles className="size-4" /> Predict Disease</>
             )}
           </Button>
         </Card>
 
         <div className="space-y-6">
-          {!done ? (
+          {error && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <Card className="flex items-start gap-3 rounded-3xl border-destructive/40 bg-destructive/5 p-6">
+                <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" />
+                <div>
+                  <p className="font-semibold text-destructive">Prediction Failed</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+
+          {!done && !error && (
             <Card className="flex min-h-[20rem] flex-col items-center justify-center gap-3 rounded-3xl border-border/60 p-8 text-center shadow-soft">
               <span className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
                 <Sparkles className="size-6" />
               </span>
               <p className="max-w-xs text-sm text-muted-foreground">
-                Add at least one symptom and run the predictor to see your top three likely conditions.
+                Add at least one symptom and click <strong>Predict Disease</strong> to get your AI-powered diagnosis.
               </p>
             </Card>
-          ) : (
+          )}
+
+          {done && result && (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <Card className="rounded-3xl border-border/60 p-7 shadow-lift">
-                <h2 className="text-lg font-semibold">Top 3 predictions</h2>
-                <Accordion type="single" collapsible defaultValue="p-0" className="mt-2">
-                  {predictions.map((p, i) => (
-                    <AccordionItem key={p.disease} value={`p-${i}`} className="border-border/60">
-                      <AccordionTrigger className="hover:no-underline">
-                        <div className="flex w-full items-center gap-4 pe-3">
-                          <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-xs font-bold text-primary">
-                            {i + 1}
-                          </span>
-                          <div className="min-w-0 flex-1 text-start">
-                            <p className="truncate font-semibold">{p.disease}</p>
-                            <Progress value={p.probability} className="mt-2 h-1.5" />
-                          </div>
-                          <span className="shrink-0 text-sm font-semibold text-primary">{p.probability}%</span>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">AI Prediction</h2>
+                  <Badge className="rounded-full bg-primary/10 text-primary px-3 py-1">
+                    {result.confidence}% match
+                  </Badge>
+                </div>
+                <Accordion type="multiple" defaultValue={["disease","precautions"]} className="mt-2">
+                  <AccordionItem value="disease" className="border-border/60">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex w-full items-center gap-4 pe-3">
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-xs font-bold text-primary">Dx</span>
+                        <div className="min-w-0 flex-1 text-start">
+                          <p className="truncate font-semibold">{result.disease}</p>
+                          <Progress value={result.confidence} className="mt-2 h-1.5" />
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="space-y-3 ps-12 text-sm">
-                        <p className="text-muted-foreground">{p.summary}</p>
-                        <p className="text-xs font-semibold tracking-widest text-muted-foreground">PRECAUTIONS</p>
+                        <span className="shrink-0 text-sm font-semibold text-primary">{result.confidence}%</span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="ps-12 text-sm text-muted-foreground">
+                      {result.description}
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {result.precautions.length > 0 && (
+                    <AccordionItem value="precautions" className="border-border/60">
+                      <AccordionTrigger className="hover:no-underline font-semibold">Precautions</AccordionTrigger>
+                      <AccordionContent className="ps-4 text-sm">
                         <ul className="space-y-1.5">
-                          {p.precautions.map((c) => (
+                          {result.precautions.map((c) => (
                             <li key={c} className="flex gap-2">
-                              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />
-                              {c}
+                              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />{c}
                             </li>
                           ))}
                         </ul>
                       </AccordionContent>
                     </AccordionItem>
-                  ))}
+                  )}
+
+                  {result.medications.length > 0 && (
+                    <AccordionItem value="meds" className="border-border/60">
+                      <AccordionTrigger className="hover:no-underline font-semibold">Medications</AccordionTrigger>
+                      <AccordionContent className="ps-4 text-sm">
+                        <ul className="space-y-1.5">
+                          {result.medications.map((m) => (
+                            <li key={m.name} className="flex gap-2">
+                              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-green-500" />{m.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
+
+                  {result.diets.length > 0 && (
+                    <AccordionItem value="diet" className="border-border/60">
+                      <AccordionTrigger className="hover:no-underline font-semibold">Diet Recommendations</AccordionTrigger>
+                      <AccordionContent className="ps-4 text-sm">
+                        <ul className="space-y-1.5">
+                          {result.diets.map((d) => (
+                            <li key={d} className="flex gap-2">
+                              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-amber-500" />{d}
+                            </li>
+                          ))}
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
                 </Accordion>
+
                 <Button variant="outline" className="mt-6 w-full gap-2 rounded-full" asChild>
-                  <Link to="/chat">
-                    <MessageCircle className="size-4" /> Ask AI Assistant
-                  </Link>
+                  <Link to="/chat"><MessageCircle className="size-4" /> Ask AI About This Condition</Link>
                 </Button>
               </Card>
               <Disclaimer />

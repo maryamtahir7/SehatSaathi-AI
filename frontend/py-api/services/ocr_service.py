@@ -1,4 +1,4 @@
-# Reload Trigger: Pytesseract Installed
+# Reload Trigger: Gemini Vision OCR integrated
 import io
 import re
 import os
@@ -7,6 +7,7 @@ import csv
 import requests
 
 from services.ml_service import medications_data
+from services.gemini_ocr import gemini_extract_text
 
 medicine_catalog = []
 _unique_meds = set()
@@ -101,30 +102,39 @@ except Exception:
     pass
 
 def extract_text_from_image(image_bytes: bytes) -> str:
-    """Hybrid OCR extraction: Local Tesseract if available, else Free Cloud OCR."""
+    """Hybrid OCR extraction: Gemini Vision (primary) → Tesseract → OCR.Space fallback."""
+
+    # --- 1. PRIMARY: Gemini Vision API (most accurate, works on Vercel) ---
+    try:
+        gemini_text = gemini_extract_text(image_bytes)
+        if gemini_text and not gemini_text.startswith("ERROR:"):
+            print("[OCR] Gemini Vision succeeded.")
+            return gemini_text.strip()
+        else:
+            print(f"[OCR] Gemini failed: {gemini_text}")
+    except Exception as e:
+        print(f"[OCR] Gemini exception: {e}")
+
+    # --- 2. SECONDARY: Local Tesseract (works on dev machine) ---
     if TESSERACT_READY and PIL_READY:
         try:
             image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
             enhancer = ImageEnhance.Contrast(image)
             image = enhancer.enhance(1.5)
             image = image.filter(ImageFilter.SHARPEN)
-            
             text = pytesseract.image_to_string(image)
             if text.strip():
+                print("[OCR] Tesseract succeeded.")
                 return text.strip()
         except Exception as e:
-            print(f"Local OCR Failed: {e}")
+            print(f"[OCR] Tesseract failed: {e}")
 
-    # Fallback to Free OCR.Space API (Ideal for Vercel Serverless where Tesseract isn't installed)
+    # --- 3. FALLBACK: Free OCR.Space API ---
     try:
         response = requests.post(
             'https://api.ocr.space/parse/image',
             files={'filename': ('image.jpg', image_bytes, 'image/jpeg')},
-            data={
-                'apikey': 'helloworld', # Free public key
-                'language': 'eng',
-                'isOverlayRequired': False
-            },
+            data={'apikey': 'helloworld', 'language': 'eng', 'isOverlayRequired': False},
             timeout=15
         )
         if response.status_code == 200:
@@ -134,11 +144,12 @@ def extract_text_from_image(image_bytes: bytes) -> str:
                 for res in result.get('ParsedResults', []):
                     text += res.get('ParsedText', '') + "\n"
                 if text.strip():
+                    print("[OCR] OCR.Space succeeded.")
                     return text.strip()
     except Exception as e:
-        print(f"Cloud OCR Failed: {e}")
-        
-    return "ERROR: OCR engines failed. Could not extract text from the image."
+        print(f"[OCR] OCR.Space failed: {e}")
+
+    return "ERROR: All OCR engines failed. Please upload a clearer prescription image."
 
 def identify_medicines(text: str) -> list[dict]:
     import difflib

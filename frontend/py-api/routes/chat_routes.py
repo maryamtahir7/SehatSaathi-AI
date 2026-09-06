@@ -98,6 +98,7 @@ class ChatResponse(BaseModel):
     response: str
     model: str
     language: str
+    products: Optional[List[dict]] = []
 
 
 @router.post("/api/assistant/chat", response_model=ChatResponse)
@@ -119,10 +120,7 @@ async def chat(request: ChatRequest):
         # Add conversation history (last 10 turns max)
         if request.history:
             for msg in request.history[-10:]:
-                messages.append({
-                    "role": msg.role,
-                    "content": msg.content
-                })
+                messages.append({"role": msg.role, "content": msg.content})
 
         # Add current user message
         messages.append({"role": "user", "content": request.message})
@@ -137,10 +135,49 @@ async def chat(request: ChatRequest):
 
         reply = response.choices[0].message.content
 
+        # --- Medicine Product Lookup ---
+        # Check if the user asked about a medicine; if so, return matching products
+        products = []
+        try:
+            import csv, re, os as _os
+            base = _os.path.join(_os.path.dirname(__file__), '..', 'data', 'Medicine_Details.csv')
+            if _os.path.exists(base):
+                # Extract potential medicine words (capitalized or known med pattern)
+                words = re.findall(r'\b[A-Z][a-z]{2,}\b|\b[a-z]{4,}\b', request.message)
+                query_lower = request.message.lower()
+                matches = []
+                with open(base, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        name = row.get('Medicine Name', '')
+                        if not name:
+                            continue
+                        name_lower = name.lower()
+                        if any(w.lower() in name_lower or name_lower.startswith(w.lower()) for w in words if len(w) > 3):
+                            matches.append(row)
+                        if len(matches) >= 3:
+                            break
+
+                for m in matches[:3]:
+                    try:
+                        price_str = str(m.get('Price', '100')).replace('Rs', '').replace(',', '').strip()
+                        price = float(price_str) if price_str else 100.0
+                    except Exception:
+                        price = 100.0
+                    products.append({
+                        'id': m.get('Medicine Name', '').replace(' ', '_').lower(),
+                        'name': m.get('Medicine Name', ''),
+                        'price': price,
+                        'image_url': m.get('Image URL', '') or None,
+                    })
+        except Exception as pe:
+            print(f"[Chat] Product lookup error: {pe}")
+
         return {
             "response": reply,
             "model": active_model,
-            "language": request.language
+            "language": request.language,
+            "products": products,
         }
 
     except Exception as e:
