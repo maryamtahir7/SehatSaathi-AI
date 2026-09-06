@@ -246,6 +246,7 @@ At the end, add an H3 heading for "📊 Nutritional Summary" and one for "💡 D
                     </ReactMarkdown>
                   </div>
                 </div>
+              </Card>
               <Disclaimer />
             </motion.div>
           )}
