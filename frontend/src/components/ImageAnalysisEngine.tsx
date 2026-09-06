@@ -277,83 +277,374 @@ export default function ImageAnalysisEngine({ type, title, classes }: ImageAnaly
               )}
             </div>
                       ) : (
-              <div className="medical-dashboard">
-                <div className="result-main">
-                  <div className="result-condition">
-                    <span className="label">{t("Primary Finding")}</span>
-                    <span className="value">{result.finding || result.primary_concern || result.condition || result.prediction || "Unknown"}</span>
-                  </div>
-                  <div className="result-confidence">
-                    <span className="label">{t("Confidence Score")}</span>
-                    <span className="value">{((result.confidence || result.probability || 0) * 100).toFixed(1)}%</span>
-                  </div>
-                </div>
-
-                <div className="result-details">
-                  <h4>{t("Clinical Notes")}</h4>
-                  <p>{result.detail_summary || result.notes || result.recommendation || t("Please consult a specialist for a definitive diagnosis.")}</p>
-                </div>
-
-                {result.full_clinical_report && (
-                  <div className="clinical-report-section">
+                            <div className="medical-dashboard">
+                <div className="dashboard-grid">
+                  
+                  {/* Left Column */}
+                  <div className="left-panel">
                     
+                    {/* Primary Finding */}
+                    <div className="light-card primary-finding-card">
+                      <span className="card-label">PRIMARY FINDING</span>
+                      <h2 className="disease-title">{result.finding || result.primary_concern || result.condition || result.prediction || "Unknown"}</h2>
+                      <div className="confidence-row">
+                        <span>Model confidence</span>
+                        <span className="conf-value">{((result.confidence || result.probability || 0) * 100).toFixed(1)}%</span>
+                      </div>
+                      <div className="progress-bar-bg">
+                        <div className="progress-bar-fill green-fill" style={{ width: `${(result.confidence || result.probability || 0) * 100}%` }}></div>
+                      </div>
+                    </div>
+
+                    {/* Top Predictions */}
+                    {(result.top_predictions && result.top_predictions.length > 0) ? (
+                      <div className="light-card top-predictions-card">
+                        <div className="card-label-row">
+                          <span className="blue-dot"></span>
+                          <span className="card-label">TOP PREDICTIONS</span>
+                        </div>
+                        <div className="predictions-list">
+                          {result.top_predictions.map((pred: any, idx: number) => {
+                             const pct = (pred.confidence * 100).toFixed(1);
+                             const isHigh = pred.confidence > 0.5;
+                             return (
+                               <div className="pred-item" key={idx}>
+                                 <div className="pred-info">
+                                   <span>{pred.label.replace(/_/g, ' ').replace(/\b\w/g, (l:string) => l.toUpperCase())}</span>
+                                   <span className={isHigh ? 'green-text' : 'red-text'}>{pct}%</span>
+                                 </div>
+                                 <div className="progress-bar-bg">
+                                   <div className={`progress-bar-fill ${isHigh ? 'green-fill' : 'red-fill'}`} style={{ width: `${pct}%` }}></div>
+                                 </div>
+                               </div>
+                             )
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="light-card top-predictions-card">
+                        <div className="card-label-row">
+                          <span className="blue-dot"></span>
+                          <span className="card-label">CLINICAL NOTES</span>
+                        </div>
+                        <p className="clinical-notes-text">
+                          {result.detail_summary || result.notes || result.recommendation || t("Please consult a specialist for a definitive diagnosis.")}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="right-panel">
+                    
+                    {/* Medicines List */}
+                    {result.full_clinical_report && result.full_clinical_report.medicines && result.full_clinical_report.medicines.length > 0 && (
+                      <div className="medicines-container">
+                        {result.full_clinical_report.medicines.map((m: any, idx: number) => (
+                          <div className="medicine-row-card" key={idx}>
+                            <div className="med-image-placeholder">
+                              💊
+                            </div>
+                            <div className="med-info-text">
+                              <h4>{typeof m === 'string' ? m : (m.name || "Medicine")}</h4>
+                              <p>{typeof m === 'string' ? "General Pharmacy" : (m.manufacturer || "General Pharmacy")}</p>
+                            </div>
+                            <button className="details-btn">Details</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Precautions */}
-                    {result.full_clinical_report.precautions && result.full_clinical_report.precautions.length > 0 && (
-                      <div className="report-card precautions-card">
-                        <div className="card-header">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                          <h4>Precautions</h4>
+                    {result.full_clinical_report && result.full_clinical_report.precautions && result.full_clinical_report.precautions.length > 0 && (
+                      <div className="light-card precautions-card">
+                        <div className="precautions-header">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                          <span>PRECAUTIONS</span>
                         </div>
                         <ul>
-                          {result.full_clinical_report.precautions.map((p: string, i: number) => (
-                            <li key={i}>{p}</li>
+                          {result.full_clinical_report.precautions.map((p: string, idx: number) => (
+                            <li key={idx}>{p}</li>
                           ))}
                         </ul>
                       </div>
                     )}
 
                     {/* Diet Plan */}
-                    {result.full_clinical_report.diet_plan && result.full_clinical_report.diet_plan.length > 0 && (
-                      <div className="report-card diet-card">
-                        <div className="card-header">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                          <h4>Recommended Diet</h4>
+                    {result.full_clinical_report && result.full_clinical_report.diet_plan && result.full_clinical_report.diet_plan.length > 0 && (
+                      <div className="light-card diet-card">
+                        <div className="precautions-header">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                          <span style={{color: '#10b981'}}>DIET RECOMMENDATIONS</span>
                         </div>
-                        <div className="tags-container">
-                          {result.full_clinical_report.diet_plan.map((d: string, i: number) => (
-                            <span key={i} className="diet-tag">{d}</span>
+                        <ul>
+                          {result.full_clinical_report.diet_plan.map((d: string, idx: number) => (
+                            <li key={idx}>{d}</li>
                           ))}
-                        </div>
+                        </ul>
                       </div>
                     )}
 
-                    {/* Pharmacy / Medicines */}
-                    {result.full_clinical_report.medicines && result.full_clinical_report.medicines.length > 0 && (
-                      <div className="report-card medicines-card">
-                        <div className="card-header">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                          <h4>Pharmacy Recommendations</h4>
-                        </div>
-                        <div className="medicines-grid">
-                          {result.full_clinical_report.medicines.map((m: any, i: number) => (
-                            <div key={i} className="medicine-item">
-                              <div className="med-icon">Rx</div>
-                              <div className="med-info">
-                                <h5>{typeof m === 'string' ? m : (m.name || 'Medicine')}</h5>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
-                )}
+                </div>
               </div>
             )}
         </div>
       )}
 
       <style jsx>{`
+        /* LIGHT MEDICAL DASHBOARD COMPONENTS */
+        .medical-dashboard {
+          background: #f8fafc;
+          border-radius: 20px;
+          padding: 1.5rem;
+          color: #0f172a;
+          font-family: 'Inter', sans-serif;
+          margin-top: 1rem;
+        }
+
+        .dashboard-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.2fr;
+          gap: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+          .dashboard-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        /* LEFT PANEL */
+        .left-panel {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .light-card {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 1.5rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .primary-finding-card {
+          border: 1px solid #bae6fd;
+          box-shadow: 0 4px 15px rgba(56, 189, 248, 0.1);
+        }
+
+        .card-label {
+          font-size: 0.75rem;
+          font-weight: 800;
+          letter-spacing: 1.5px;
+          color: #0284c7;
+          text-transform: uppercase;
+        }
+        
+        .blue-dot {
+          width: 8px;
+          height: 8px;
+          background: #0ea5e9;
+          border-radius: 50%;
+          display: inline-block;
+          margin-right: 0.5rem;
+        }
+
+        .card-label-row {
+          display: flex;
+          align-items: center;
+          margin-bottom: 1.5rem;
+        }
+
+        .disease-title {
+          font-size: 2.2rem;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0.5rem 0 1.5rem 0;
+          letter-spacing: -0.5px;
+        }
+
+        .confidence-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.9rem;
+          color: #64748b;
+          margin-bottom: 0.5rem;
+          font-weight: 600;
+        }
+
+        .conf-value {
+          color: #10b981;
+        }
+
+        .progress-bar-bg {
+          height: 8px;
+          background: #f1f5f9;
+          border-radius: 4px;
+          overflow: hidden;
+        }
+
+        .progress-bar-fill {
+          height: 100%;
+          border-radius: 4px;
+        }
+
+        .green-fill { background: #10b981; }
+        .red-fill { background: #ef4444; }
+
+        .predictions-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .pred-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .pred-info {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.95rem;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .green-text { color: #10b981; }
+        .red-text { color: #ef4444; }
+
+        .clinical-notes-text {
+          color: #475569;
+          font-size: 0.95rem;
+          line-height: 1.6;
+        }
+
+        /* RIGHT PANEL */
+        .right-panel {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .medicines-container {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          max-height: 400px;
+          overflow-y: auto;
+          padding-right: 0.5rem;
+        }
+        
+        .medicines-container::-webkit-scrollbar {
+          width: 6px;
+        }
+        .medicines-container::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 3px;
+        }
+
+        .medicine-row-card {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 1rem;
+          transition: border-color 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .medicine-row-card:hover {
+          border-color: #cbd5e1;
+        }
+
+        .med-image-placeholder {
+          width: 48px;
+          height: 48px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.5rem;
+        }
+
+        .med-info-text {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .med-info-text h4 {
+          margin: 0;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #0f172a;
+        }
+
+        .med-info-text p {
+          margin: 0;
+          font-size: 0.8rem;
+          color: #64748b;
+        }
+
+        .details-btn {
+          background: transparent;
+          border: 1px solid #cbd5e1;
+          color: #475569;
+          border-radius: 20px;
+          padding: 0.4rem 1rem;
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .details-btn:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+        }
+
+        .precautions-card {
+          border-color: #fcd34d;
+          background: rgba(251, 191, 36, 0.05);
+        }
+
+        .diet-card {
+          border-color: #6ee7b7;
+          background: rgba(16, 185, 129, 0.05);
+        }
+
+        .precautions-header {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+          font-weight: 800;
+          font-size: 0.85rem;
+          color: #d97706;
+          letter-spacing: 1px;
+        }
+
+        .precautions-card ul, .diet-card ul {
+          margin: 0;
+          padding-left: 1.5rem;
+          color: #334155;
+          font-size: 0.95rem;
+          line-height: 1.6;
+        }
+        
+        .precautions-card li, .diet-card li {
+          margin-bottom: 0.5rem;
+        }
+
         .engine-container {
           max-width: 900px;
           margin: 0 auto;
