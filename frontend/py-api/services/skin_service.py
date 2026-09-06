@@ -217,31 +217,34 @@ def analyze_skin_image(image_bytes: bytes) -> Dict:
             import onnxruntime as ort
             import numpy as np
             onnx_path = BASE_DIR / "models" / "skin.onnx"
-            if onnx_path.exists():
-                session = ort.InferenceSession(str(onnx_path))
-                
-                # The ONNX model my_model.keras expects 64x64x1
-                img_resized = Image.open(io.BytesIO(image_bytes)).convert("L").resize((64, 64))
-                img_array = np.array(img_resized).astype('float32') / 255.0
-                img_tensor = np.expand_dims(np.expand_dims(img_array, axis=-1), axis=0)
-                
-                input_name = session.get_inputs()[0].name
-                output_name = session.get_outputs()[0].name
-                preds = session.run([output_name], {input_name: img_tensor})[0][0]
-                
-                class_idx = int(np.argmax(preds))
-                confidence = float(preds[class_idx])
-                
-                if confidence < 0.40:
-                    finding = "Unrecognized / Not a skin image"
-                    conditions_detected = [{"condition": finding, "confidence": confidence, "detected": False}]
-                else:
-                    # Typical skin classes (acne, eczema, healthy, melanoma...)
-                    skin_classes = ["acne", "melanoma", "eczema", "normal", "psoriasis"]
-                    finding = skin_classes[class_idx] if class_idx < len(skin_classes) else f"condition_{class_idx}"
-                    conditions_detected = [{"condition": finding, "confidence": confidence, "detected": True}]
-                
-                onnx_success = True
+            # if onnx_path.exists():
+            #     session = ort.InferenceSession(str(onnx_path))
+            #     
+            #     # The ONNX model my_model.keras expects 64x64x1
+            #     img_resized = Image.open(io.BytesIO(image_bytes)).convert("L").resize((64, 64))
+            #     img_array = np.array(img_resized).astype('float32') / 255.0
+            #     img_tensor = np.expand_dims(np.expand_dims(img_array, axis=-1), axis=0)
+            #     
+            #     input_name = session.get_inputs()[0].name
+            #     output_name = session.get_outputs()[0].name
+            #     preds = session.run([output_name], {input_name: img_tensor})[0][0]
+            #     
+            #     class_idx = int(np.argmax(preds))
+            #     confidence = float(preds[class_idx])
+            #     
+            #     if confidence < 0.40:
+            #         finding = "Unrecognized / Not a skin image"
+            #         conditions_detected = [{"condition": finding, "confidence": confidence, "detected": False}]
+            #     else:
+            #         # Typical skin classes (acne, eczema, healthy, melanoma...)
+            #         skin_classes = ["acne", "melanoma", "eczema", "normal", "psoriasis"]
+            #         finding = skin_classes[class_idx] if class_idx < len(skin_classes) else f"condition_{class_idx}"
+            #         conditions_detected = [{"condition": finding, "confidence": confidence, "detected": True}]
+            #     
+            #     onnx_success = True
+            
+            # Use original heuristics instead of overriding with a bad model
+            onnx_success = False
         except Exception as e:
             # RETURN THE ERROR SO VERCEL FAILS LOUDLY AND WE SEE IT!
             return {"error": f"ONNX Runtime Error on Vercel: {str(e)}"}

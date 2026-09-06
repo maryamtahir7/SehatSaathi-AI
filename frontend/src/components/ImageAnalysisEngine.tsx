@@ -136,21 +136,64 @@ export default function ImageAnalysisEngine({ type, title, classes }: ImageAnaly
         <div className="results-section glass">
           <h3>{t("Diagnostic Results")}</h3>
           
-          <div className="result-main">
-            <div className="result-condition">
-              <span className="label">{t("Primary Finding")}</span>
-              <span className="value">{result.finding || result.primary_concern || result.condition || result.prediction || "Unknown"}</span>
-            </div>
-            <div className="result-confidence">
-              <span className="label">{t("Confidence Score")}</span>
-              <span className="value">{((result.confidence || result.probability || 0) * 100).toFixed(1)}%</span>
-            </div>
-          </div>
+          {result.skin_type ? (
+            <div className="skin-result-container">
+              <div className="result-main">
+                <div className="result-condition">
+                  <span className="label">{t("Skin Type")}</span>
+                  <span className="value">{result.skin_type} ({(result.skin_type_confidence * 100).toFixed(1)}%)</span>
+                </div>
+                <div className="result-confidence">
+                  <span className="label">{t("Primary Condition")}</span>
+                  <span className="value">{result.finding || "Unknown"} ({(result.confidence * 100).toFixed(1)}%)</span>
+                </div>
+              </div>
 
-          <div className="result-details">
-            <h4>{t("Clinical Notes")}</h4>
-            <p>{result.notes || result.recommendation || t("Please consult a specialist for a definitive diagnosis.")}</p>
-          </div>
+              {result.conditions_detected && result.conditions_detected.length > 0 && (
+                <div className="result-details">
+                  <h4>{t("All Conditions Detected")}</h4>
+                  <ul>
+                    {result.conditions_detected.map((cond: any, idx: number) => (
+                      <li key={idx}>
+                        <strong>{cond.condition}</strong>: {(cond.confidence * 100).toFixed(1)}%
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {result.ingredient_recommendations && result.ingredient_recommendations.length > 0 && (
+                <div className="result-details" style={{ marginTop: '1rem' }}>
+                  <h4>{t("Recommended Ingredients")}</h4>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {result.ingredient_recommendations.map((ing: any, idx: number) => (
+                      <span key={idx} style={{ background: '#e0f2fe', color: '#0284c7', padding: '0.5rem 1rem', borderRadius: '9999px', fontWeight: 'bold' }}>
+                        {ing.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="result-main">
+                <div className="result-condition">
+                  <span className="label">{t("Primary Finding")}</span>
+                  <span className="value">{result.finding || result.primary_concern || result.condition || result.prediction || "Unknown"}</span>
+                </div>
+                <div className="result-confidence">
+                  <span className="label">{t("Confidence Score")}</span>
+                  <span className="value">{((result.confidence || result.probability || 0) * 100).toFixed(1)}%</span>
+                </div>
+              </div>
+
+              <div className="result-details">
+                <h4>{t("Clinical Notes")}</h4>
+                <p>{result.notes || result.recommendation || t("Please consult a specialist for a definitive diagnosis.")}</p>
+              </div>
+            </>
+          )}
         </div>
       )}
 
