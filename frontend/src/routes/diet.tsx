@@ -69,7 +69,10 @@ function Diet() {
 - Target Calories: ${target} kcal/day
 - Medical Conditions / Restrictions: ${conditions}
 
-Format the plan clearly with Breakfast, Lunch, Dinner, and Snacks. For each meal, list the foods, approximate portions, and calorie estimates. At the end, add a brief nutritional summary and 3 key diet tips for the patient's conditions. Use Markdown formatting.`;
+CRITICAL FORMATTING INSTRUCTIONS:
+Do NOT use tables. Format each meal (e.g., Breakfast, Mid-Morning Snack, Lunch, Afternoon Snack, Dinner) using an H3 heading (###) that includes the meal name and calorie count (e.g., "### 🌅 Breakfast (350 kcal)").
+Under each meal heading, use a bulleted list (-) for the food items and portions.
+At the end, add an H3 heading for "📊 Nutritional Summary" and one for "💡 Diet Tips" using the same format.`;
 
     try {
       const res = await fetch("/api/assistant/chat", {
@@ -96,7 +99,7 @@ Format the plan clearly with Breakfast, Lunch, Dinner, and Snacks. For each meal
       wide
     >
       <div className="grid gap-6 lg:grid-cols-5">
-        <Card className="rounded-3xl border-border/60 p-7 shadow-soft no-print lg:col-span-2">
+        <Card className="rounded-3xl border-border/60 p-7 shadow-soft no-print lg:col-span-2 h-fit">
           <h2 className="text-lg font-semibold">Your profile</h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -157,9 +160,9 @@ Format the plan clearly with Breakfast, Lunch, Dinner, and Snacks. For each meal
 
           <Button size="lg" className="mt-8 w-full rounded-full transition-transform hover:scale-[1.02]" onClick={generate} disabled={loading}>
             {loading ? (
-              <><Loader2 className="size-4 animate-spin" /> Building your plan...</>
+              <><Loader2 className="size-4 animate-spin mr-2" /> Building your plan...</>
             ) : (
-              <><Sparkles className="size-4" /> Generate Custom Diet Plan</>
+              <><Sparkles className="size-4 mr-2" /> Generate Custom Diet Plan</>
             )}
           </Button>
         </Card>
@@ -178,7 +181,7 @@ Format the plan clearly with Breakfast, Lunch, Dinner, and Snacks. For each meal
           )}
 
           {!done && !error && (
-            <Card className="flex min-h-[22rem] flex-col items-center justify-center gap-3 rounded-3xl border-border/60 p-8 text-center shadow-soft">
+            <Card className="flex min-h-[22rem] flex-col items-center justify-center gap-3 rounded-3xl border-border/60 p-8 text-center shadow-soft h-full">
               <span className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-muted-foreground">
                 <Salad className="size-6" />
               </span>
@@ -190,45 +193,59 @@ Format the plan clearly with Breakfast, Lunch, Dinner, and Snacks. For each meal
 
           {done && aiPlan && (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <Card className="rounded-3xl border-border/60 p-7 shadow-lift">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold">Your AI Diet Plan</h2>
-                    <p className="text-sm text-muted-foreground">
-                      {picked.length ? picked.join(" · ") : "No restrictions"} · {form.goal === "loss" ? "Weight loss" : form.goal === "gain" ? "Weight gain" : "Maintenance"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className="gap-1.5 rounded-full bg-primary-soft py-1.5 text-accent-foreground hover:bg-primary-soft">
-                      <Flame className="size-3.5" /> {target} kcal target
-                    </Badge>
-                    <Button variant="outline" size="sm" className="gap-2 rounded-full no-print" onClick={() => window.print()}>
-                      <Printer className="size-4" /> Print Plan
-                    </Button>
+              <Card className="rounded-3xl border-border/60 p-1 shadow-lift overflow-hidden">
+                <div className="bg-primary-soft/50 p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-display font-semibold">Your AI Diet Plan</h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {picked.length ? picked.join(" · ") : "No restrictions"} · {form.goal === "loss" ? "Weight loss" : form.goal === "gain" ? "Weight gain" : "Maintenance"}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge className="gap-1.5 rounded-full bg-primary py-1.5 text-primary-foreground hover:bg-primary px-3 shadow-soft">
+                        <Flame className="size-3.5" /> {target} kcal
+                      </Badge>
+                      <Button variant="outline" size="sm" className="gap-2 rounded-full no-print bg-background" onClick={() => window.print()}>
+                        <Printer className="size-4" /> Print
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-6 prose prose-sm max-w-none dark:prose-invert">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      h1: ({ ...props }) => <h1 className="text-lg font-bold mb-3 mt-5 text-foreground" {...props} />,
-                      h2: ({ ...props }) => <h2 className="text-base font-bold mb-2 mt-4 text-foreground" {...props} />,
-                      h3: ({ ...props }) => <h3 className="text-sm font-bold mb-2 mt-3 text-foreground" {...props} />,
-                      p: ({ ...props }) => <p className="mb-3 text-muted-foreground last:mb-0" {...props} />,
-                      ul: ({ ...props }) => <ul className="list-disc pl-5 mb-3 space-y-1 text-muted-foreground" {...props} />,
-                      ol: ({ ...props }) => <ol className="list-decimal pl-5 mb-3 space-y-1 text-muted-foreground" {...props} />,
-                      li: ({ ...props }) => <li className="pl-1" {...props} />,
-                      strong: ({ ...props }) => <strong className="font-semibold text-foreground" {...props} />,
-                      table: ({ ...props }) => <div className="overflow-x-auto my-3"><table className="w-full border-collapse text-xs" {...props} /></div>,
-                      th: ({ ...props }) => <th className="border border-border/50 bg-secondary px-3 py-2 text-left font-semibold text-foreground" {...props} />,
-                      td: ({ ...props }) => <td className="border border-border/50 px-3 py-2 text-muted-foreground" {...props} />,
-                    }}
-                  >
-                    {aiPlan}
-                  </ReactMarkdown>
+                <div className="p-6 md:p-8">
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        h1: ({ ...props }) => <h1 className="hidden" {...props} />, // Hide H1 if AI includes it
+                        h2: ({ ...props }) => <h2 className="text-lg font-bold mb-4 mt-8 text-foreground border-b pb-2" {...props} />,
+                        h3: ({ ...props }) => (
+                          <h3 className="mt-8 mb-4 flex items-center gap-3 rounded-2xl bg-secondary/50 px-5 py-3.5 text-base font-bold text-foreground border border-border/50 shadow-sm first:mt-0" {...props} />
+                        ),
+                        p: ({ ...props }) => <p className="mb-4 text-sm text-muted-foreground leading-relaxed" {...props} />,
+                        ul: ({ ...props }) => (
+                          <ul className="mb-6 space-y-3 rounded-2xl border border-border/60 bg-background p-5 shadow-soft" {...props} />
+                        ),
+                        ol: ({ ...props }) => (
+                          <ol className="list-decimal pl-5 mb-6 space-y-2 text-muted-foreground" {...props} />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li className="flex items-start gap-3 text-sm text-foreground/80 leading-relaxed group">
+                            <span className="mt-1.5 flex size-1.5 shrink-0 rounded-full bg-primary/70 transition-transform group-hover:scale-150" />
+                            <span className="flex-1">{props.children}</span>
+                          </li>
+                        ),
+                        strong: ({ ...props }) => <strong className="font-semibold text-foreground" {...props} />,
+                        table: ({ ...props }) => <div className="overflow-x-auto mb-6 rounded-2xl border border-border/60"><table className="w-full border-collapse text-sm text-left" {...props} /></div>,
+                        th: ({ ...props }) => <th className="bg-secondary px-4 py-3 font-semibold text-foreground border-b border-border/60" {...props} />,
+                        td: ({ ...props }) => <td className="px-4 py-3 text-muted-foreground border-b border-border/40 last:border-0" {...props} />,
+                      }}
+                    >
+                      {aiPlan}
+                    </ReactMarkdown>
+                  </div>
                 </div>
-              </Card>
               <Disclaimer />
             </motion.div>
           )}
