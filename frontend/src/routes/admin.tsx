@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import {
@@ -61,6 +61,7 @@ function AdminDashboard() {
   const [pPrice, setPPrice]       = useState("");
   const [pCategory, setPCategory] = useState("General");
   const [pDesc, setPDesc]         = useState("");
+  const [pImage, setPImage]       = useState("");
   const [saving, setSaving]       = useState(false);
   const [editId, setEditId]       = useState<string | null>(null);
 
@@ -88,12 +89,12 @@ function AdminDashboard() {
 
   useEffect(() => { loadData(); }, []);
 
-  const resetForm = () => { setPName(""); setPBrand(""); setPPrice(""); setPCategory("General"); setPDesc(""); setEditId(null); };
+  const resetForm = () => { setPName(""); setPBrand(""); setPPrice(""); setPCategory("General"); setPDesc(""); setPImage(""); setEditId(null); };
 
   const saveProduct = async () => {
     if (!pName || !pPrice) return;
     setSaving(true);
-    const data = { name: pName, brand: pBrand, price: parseFloat(pPrice), category: pCategory, description: pDesc };
+    const data = { name: pName, brand: pBrand, price: parseFloat(pPrice), category: pCategory, description: pDesc, image_url: pImage };
     try {
       if (editId) {
         await productService.update(editId, data);
@@ -114,7 +115,7 @@ function AdminDashboard() {
 
   const startEdit = (p: Product) => {
     setEditId(p.$id); setPName(p.name); setPBrand(p.brand || "");
-    setPPrice(String(p.price)); setPCategory(p.category || "General"); setPDesc(p.description || "");
+    setPPrice(String(p.price)); setPCategory(p.category || "General"); setPDesc(p.description || ""); setPImage(p.image_url || "");
     setTab("products");
   };
 
@@ -189,6 +190,7 @@ function AdminDashboard() {
                     </select>
                   </div>
                   <div><Label>Description</Label><Input value={pDesc} onChange={e=>setPDesc(e.target.value)} placeholder="Short description" className="mt-1 rounded-xl" /></div>
+                  <div><Label>Image URL</Label><Input value={pImage} onChange={e=>setPImage(e.target.value)} placeholder="https://..." className="mt-1 rounded-xl" /></div>
                   <div className="flex gap-2 pt-2">
                     <Button className="flex-1 rounded-full" onClick={saveProduct} disabled={saving}>
                       {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4 mr-1" />}
@@ -212,7 +214,9 @@ function AdminDashboard() {
                   products.map(p => (
                     <motion.div key={p.$id} initial={{ opacity:0 }} animate={{ opacity:1 }}>
                       <Card className="rounded-2xl border-border/60 p-4 shadow-soft flex items-center gap-4">
-                        <span className="text-2xl">{p.emoji || "💊"}</span>
+                        <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl bg-primary-soft/70 text-2xl shrink-0">
+                          {p.image_url ? <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" /> : (p.emoji || "💊")}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold truncate">{p.name}</p>
                           <p className="text-xs text-muted-foreground">{p.brand} · {p.category}</p>

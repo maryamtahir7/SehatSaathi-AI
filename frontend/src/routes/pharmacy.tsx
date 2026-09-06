@@ -129,8 +129,12 @@ function Pharmacy() {
                 transition={{ delay: Math.min(i * 0.04, 0.3) }}
               >
                 <Card className="card-hover h-full gap-3 flex flex-col rounded-3xl border-border/60 p-5 shadow-soft">
-                  <div className="flex h-32 items-center justify-center rounded-2xl bg-primary-soft/70 text-5xl">
-                    {p.emoji || "💊"}
+                  <div className="flex h-32 items-center justify-center rounded-2xl bg-primary-soft/70 text-5xl overflow-hidden">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                    ) : (
+                      p.emoji || "💊"
+                    )}
                   </div>
                   <div className="flex items-start justify-between gap-2 mt-3">
                     <p className="text-xs text-muted-foreground truncate">{p.brand}</p>
