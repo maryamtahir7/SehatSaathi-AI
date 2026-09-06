@@ -104,6 +104,7 @@ except Exception:
 def extract_text_from_image(image_bytes: bytes) -> str:
     """Hybrid OCR extraction: Gemini Vision (primary) → Tesseract → OCR.Space fallback."""
 
+    gemini_err = None
     # --- 1. PRIMARY: Gemini Vision API (most accurate, works on Vercel) ---
     try:
         gemini_text = gemini_extract_text(image_bytes)
@@ -111,8 +112,10 @@ def extract_text_from_image(image_bytes: bytes) -> str:
             print("[OCR] Gemini Vision succeeded.")
             return gemini_text.strip()
         else:
+            gemini_err = gemini_text
             print(f"[OCR] Gemini failed: {gemini_text}")
     except Exception as e:
+        gemini_err = f"ERROR: Exception - {str(e)}"
         print(f"[OCR] Gemini exception: {e}")
 
     # --- 2. SECONDARY: Local Tesseract (works on dev machine) ---
@@ -149,7 +152,7 @@ def extract_text_from_image(image_bytes: bytes) -> str:
     except Exception as e:
         print(f"[OCR] OCR.Space failed: {e}")
 
-    return "ERROR: All OCR engines failed. Please upload a clearer prescription image."
+    return gemini_err or "ERROR: All OCR engines failed. Please upload a clearer prescription image."
 
 def identify_medicines(text: str) -> list[dict]:
     import difflib

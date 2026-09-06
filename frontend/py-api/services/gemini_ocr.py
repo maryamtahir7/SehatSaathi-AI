@@ -1,7 +1,17 @@
-import os
+﻿import os
 import base64
 import requests
 
+def get_mime_type(image_bytes: bytes) -> str:
+    if image_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
+        return 'image/png'
+    elif image_bytes.startswith(b'\xff\xd8'):
+        return 'image/jpeg'
+    elif image_bytes.startswith(b'GIF87a') or image_bytes.startswith(b'GIF89a'):
+        return 'image/gif'
+    elif image_bytes.startswith(b'RIFF') and image_bytes[8:12] == b'WEBP':
+        return 'image/webp'
+    return 'image/jpeg' # fallback
 
 def gemini_extract_text(image_bytes: bytes) -> str:
     """Use Gemini Vision API to extract text from a prescription image."""
@@ -12,6 +22,7 @@ def gemini_extract_text(image_bytes: bytes) -> str:
     )
 
     b64_img = base64.b64encode(image_bytes).decode("utf-8")
+    mime_type = get_mime_type(image_bytes)
 
     payload = {
         "contents": [
@@ -25,7 +36,7 @@ def gemini_extract_text(image_bytes: bytes) -> str:
                             "Return only the extracted text."
                         )
                     },
-                    {"inline_data": {"mime_type": "image/jpeg", "data": b64_img}},
+                    {"inline_data": {"mime_type": mime_type, "data": b64_img}},
                 ]
             }
         ],
@@ -46,4 +57,3 @@ def gemini_extract_text(image_bytes: bytes) -> str:
             return f"ERROR: Gemini API status {response.status_code}: {response.text[:200]}"
     except Exception as e:
         return f"ERROR: Gemini OCR failed: {str(e)}"
-
