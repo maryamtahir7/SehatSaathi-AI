@@ -9,8 +9,16 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { translate, type DictKey, type Lang } from "./i18n";
+import { authService } from "./appwrite";
 
 export type CartItem = { id: string; name: string; price: number; qty: number };
+
+export type AppUser = {
+  $id: string;
+  name: string;
+  email: string;
+  labels?: string[];
+};
 
 type AppState = {
   lang: Lang;
@@ -30,9 +38,11 @@ type AppState = {
   setCartOpen: (v: boolean) => void;
   authOpen: boolean;
   setAuthOpen: (v: boolean) => void;
-  user: string | null;
-  signIn: (email: string) => void;
-  signOut: () => void;
+  user: AppUser | null;
+  authLoading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 const AppContext = createContext<AppState | null>(null);
@@ -43,9 +53,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
-  const [user, setUser] = useState<string | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const rtl = lang === "ur";
+
+  // Load current Appwrite session on mount
+  useEffect(() => {
+    authService.getUser().then((u) => {
+      if (u) setUser(u as AppUser);
+    }).finally(() => setAuthLoading(false));
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -74,37 +92,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const signIn = useCallback(async (email: string, password: string) => {
+    await authService.login(email, password);
+    const u = await authService.getUser();
+    if (u) setUser(u as AppUser);
+    setAuthOpen(false);
+    toast.success(`Welcome back, ${u?.name ?? email}!`);
+  }, []);
+
+  const signUp = useCallback(async (name: string, email: string, password: string) => {
+    await authService.register(name, email, password);
+    const u = await authService.getUser();
+    if (u) setUser(u as AppUser);
+    setAuthOpen(false);
+    toast.success(`Welcome to SehatSaathi, ${name}!`);
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await authService.logout();
+    setUser(null);
+    toast("Signed out successfully");
+  }, []);
+
   const value = useMemo<AppState>(
     () => ({
-      lang,
-      setLang,
-      t,
-      rtl,
-      dark,
+      lang, setLang, t, rtl, dark,
       toggleDark: () => setDark((d) => !d),
       cart,
       cartCount: cart.reduce((n, c) => n + c.qty, 0),
       cartTotal: cart.reduce((n, c) => n + c.qty * c.price, 0),
-      addToCart,
-      setQty,
+      addToCart, setQty,
       removeFromCart: (id) => setCart((prev) => prev.filter((c) => c.id !== id)),
       clearCart: () => setCart([]),
-      cartOpen,
-      setCartOpen,
-      authOpen,
-      setAuthOpen,
-      user,
-      signIn: (email) => {
-        setUser(email);
-        setAuthOpen(false);
-        toast.success(`Welcome back, ${email.split("@")[0]}`);
-      },
-      signOut: () => {
-        setUser(null);
-        toast("Signed out");
-      },
+      cartOpen, setCartOpen,
+      authOpen, setAuthOpen,
+      user, authLoading,
+      signIn, signUp, signOut,
     }),
-    [lang, t, rtl, dark, cart, cartOpen, authOpen, user, addToCart, setQty],
+    [lang, t, rtl, dark, cart, cartOpen, authOpen, user, authLoading, addToCart, setQty, signIn, signUp, signOut],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

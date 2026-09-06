@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/site/page-shell";
 import { formatPKR, useApp } from "@/lib/app-context";
+import { productService } from "@/lib/appwrite";
 
 export const Route = createFileRoute("/pharmacy")({
   head: () => ({
@@ -25,6 +26,15 @@ export const Route = createFileRoute("/pharmacy")({
   component: Pharmacy,
 });
 
+const FALLBACK_PRODUCTS = [
+  { $id: "m1", name: "Paracetamol 500mg", brand: "GSK", price: 150, category: "First Aid", emoji: "💊", rating: 4.8 },
+  { $id: "m2", name: "Vitamin C 1000mg", brand: "Abbott", price: 450, category: "Vitamins", emoji: "🍊", rating: 4.9 },
+  { $id: "m3", name: "Aspirin 75mg", brand: "Bayer", price: 200, category: "Prescription", emoji: "🩺", rating: 4.7 },
+  { $id: "m4", name: "Omega 3 Fish Oil", brand: "Nature's Bounty", price: 1250, category: "Supplements", emoji: "🐟", rating: 4.6 },
+  { $id: "m5", name: "Amoxicillin 500mg", brand: "GSK", price: 320, category: "Prescription", emoji: "💉", rating: 4.5 },
+  { $id: "m6", name: "Ibuprofen 400mg", brand: "Reckitt", price: 180, category: "First Aid", emoji: "💊", rating: 4.7 },
+];
+
 function Pharmacy() {
   const { addToCart, t } = useApp();
   const [cat, setCat] = useState<string>("All");
@@ -35,26 +45,25 @@ function Pharmacy() {
   const categories = ["All", "Prescription", "Vitamins", "Supplements", "First Aid", "Devices"];
 
   useEffect(() => {
-    fetch("/medicines/all?limit=50")
-      .then(res => res.json())
-      .then(data => {
-        if(Array.isArray(data) && data.length > 0) {
-            setProducts(data);
+    productService.list(100)
+      .then((res) => {
+        if (res.documents && res.documents.length > 0) {
+          setProducts(res.documents);
         } else {
-            // fallback mock data just in case API fails
-            setProducts([
-                { id: "m1", name: "Paracetamol 500mg", brand: "GSK", price: 150, category: "First Aid", emoji: "💊", rating: 4.8 },
-                { id: "m2", name: "Vitamin C 1000mg", brand: "Abbott", price: 450, category: "Vitamins", emoji: "🍊", rating: 4.9 },
-                { id: "m3", name: "Aspirin 75mg", brand: "Bayer", price: 200, category: "Prescription", emoji: "🩺", rating: 4.7 },
-                { id: "m4", name: "Omega 3 Fish Oil", brand: "Nature's Bounty", price: 1250, category: "Supplements", emoji: "🐟", rating: 4.6 },
-            ]);
+          // Fallback to Python API
+          return fetch("/medicines/all?limit=50").then(r => r.json()).then(data => {
+            setProducts(Array.isArray(data) && data.length > 0 ? data : FALLBACK_PRODUCTS);
+          });
         }
-        setLoading(false);
       })
-      .catch(err => {
-        console.error("Failed to load medicines", err);
-        setLoading(false);
-      });
+      .catch(() => {
+        // Try Python API fallback
+        fetch("/medicines/all?limit=50")
+          .then(r => r.json())
+          .then(data => setProducts(Array.isArray(data) && data.length > 0 ? data : FALLBACK_PRODUCTS))
+          .catch(() => setProducts(FALLBACK_PRODUCTS));
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const list = useMemo(

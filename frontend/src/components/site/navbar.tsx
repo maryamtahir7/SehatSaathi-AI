@@ -95,9 +95,14 @@ export function Navbar() {
               )}
             </Button>
             {user ? (
-              <Button variant="outline" size="sm" className="hidden rounded-full sm:inline-flex" onClick={signOut}>
-                {user.split("@")[0]}
-              </Button>
+              <div className="hidden sm:flex items-center gap-1.5">
+                <Button variant="outline" size="sm" className="rounded-full gap-1.5" asChild>
+                  <Link to="/admin">Admin</Link>
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full" onClick={() => signOut()}>
+                  {user.name?.split(" ")[0] ?? user.email?.split("@")[0]} · Sign Out
+                </Button>
+              </div>
             ) : (
               <Button
                 size="sm"

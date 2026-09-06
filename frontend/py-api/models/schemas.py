@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class SymptomRequest(BaseModel):
     symptoms: List[str]
@@ -9,6 +9,11 @@ class SymptomRequest(BaseModel):
 class PredictionResponse(BaseModel):
     disease: str
     description: str
+    precautions: List[str] = []
+    medications: List[dict] = []
+    diets: List[str] = []
+    workout: List[str] = []
+    confidence: float = 0.85
 
 class RecommendationResponse(BaseModel):
     disease: str
