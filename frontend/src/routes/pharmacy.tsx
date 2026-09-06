@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/site/page-shell";
 import { formatPKR, useApp } from "@/lib/app-context";
-import { productService } from "@/lib/appwrite";
+import { productService, databases, DB, COL } from "@/lib/appwrite";
 
 export const Route = createFileRoute("/pharmacy")({
   head: () => ({
@@ -40,11 +40,21 @@ function Pharmacy() {
   const [cat, setCat] = useState<string>("All");
   const [q, setQ] = useState("");
   const [products, setProducts] = useState<any[]>([]);
+  const [appwriteCategories, setAppwriteCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const categories = ["All", "Prescription", "Vitamins", "Supplements", "First Aid", "Devices"];
 
   useEffect(() => {
+    // Try to fetch custom categories from Appwrite
+    databases.listDocuments(DB, COL.categories)
+      .then(res => {
+        if (res.documents && res.documents.length > 0) {
+          setAppwriteCategories(res.documents);
+        }
+      })
+      .catch(() => console.log("No custom categories found in Appwrite"));
+
     productService.list(100)
       .then((res) => {
         if (res.documents && res.documents.length > 0) {
@@ -93,20 +103,51 @@ function Pharmacy() {
             className="h-13 rounded-2xl ps-11 text-base"
           />
         </div>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {categories.map((c) => (
+        <div className="mt-5 flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+          {appwriteCategories.length > 0 ? (
             <button
-              key={c}
-              onClick={() => setCat(c)}
-              className={`rounded-full border px-4 py-2 text-sm transition-all hover:scale-[1.03] ${
-                cat === c
-                  ? "border-primary/40 bg-primary-soft text-accent-foreground"
-                  : "border-border/70 text-muted-foreground hover:text-foreground"
+              onClick={() => setCat("All")}
+              className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all hover:scale-[1.03] ${
+                cat === "All"
+                  ? "border-primary bg-primary text-primary-foreground shadow-md"
+                  : "border-border/70 bg-background/50 text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
               }`}
             >
-              {c}
+              All Products
             </button>
-          ))}
+          ) : null}
+          {appwriteCategories.length > 0 ? (
+            appwriteCategories.map((c) => (
+              <button
+                key={c.$id}
+                onClick={() => setCat(c.name)}
+                className={`flex shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium transition-all hover:scale-[1.03] ${
+                  cat === c.name
+                    ? "border-primary bg-primary text-primary-foreground shadow-md"
+                    : "border-border/70 bg-background/50 text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                }`}
+              >
+                {(c.image || c.image_url) && (
+                  <img src={productService.getImageUrl(c.image || c.image_url)} alt={c.name} className="size-6 rounded-full object-cover" />
+                )}
+                {c.name}
+              </button>
+            ))
+          ) : (
+            categories.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCat(c)}
+                className={`rounded-full border px-4 py-2 text-sm transition-all hover:scale-[1.03] ${
+                  cat === c
+                    ? "border-primary/40 bg-primary-soft text-accent-foreground"
+                    : "border-border/70 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c}
+              </button>
+            ))
+          )}
         </div>
         <p className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
           <Truck className="size-4 text-primary" /> Free delivery on orders above Rs 2,000 · Cash on delivery available
@@ -131,7 +172,7 @@ function Pharmacy() {
                 <Card className="card-hover h-full gap-3 flex flex-col rounded-3xl border-border/60 p-5 shadow-soft">
                   <div className="flex h-32 items-center justify-center rounded-2xl bg-primary-soft/70 text-5xl overflow-hidden">
                     {p.image_url ? (
-                      <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                      <img src={productService.getImageUrl(p.image_url)} alt={p.name} className="h-full w-full object-cover" />
                     ) : (
                       p.emoji || "💊"
                     )}

@@ -60,6 +60,11 @@ export const productService = {
     const res = await storage.createFile(BUCKET, ID.unique(), file);
     return storage.getFilePreview(BUCKET, res.$id).href;
   },
+  getImageUrl(fileId: string) {
+    if (!fileId) return "";
+    if (fileId.startsWith("http")) return fileId;
+    return storage.getFilePreview(BUCKET, fileId).href;
+  }
 };
 
 // ─── Order helpers ───────────────────────────────────────────────────────────

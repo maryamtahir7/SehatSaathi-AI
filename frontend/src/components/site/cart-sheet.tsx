@@ -10,11 +10,34 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useState } from "react";
 import { formatPKR, useApp } from "@/lib/app-context";
+import { orderService } from "@/lib/appwrite";
 
 export function CartSheet() {
-  const { cart, cartOpen, setCartOpen, setQty, removeFromCart, cartTotal, t, rtl, clearCart } = useApp();
+  const { cart, cartOpen, setCartOpen, setQty, removeFromCart, cartTotal, t, rtl, clearCart, user } = useApp();
+  const [checkingOut, setCheckingOut] = useState(false);
   const delivery = cart.length ? 149 : 0;
+
+  const handleCheckout = async () => {
+    if (!cart.length) return;
+    setCheckingOut(true);
+    try {
+      await orderService.create({
+        items: JSON.stringify(cart),
+        total: cartTotal + delivery,
+        status: "Pending",
+        userId: user?.$id || "guest",
+      });
+      clearCart();
+      setCartOpen(false);
+      toast.success("Order placed successfully! A pharmacist will call you to confirm.");
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Failed to place order.");
+    } finally {
+      setCheckingOut(false);
+    }
+  };
 
   return (
     <Sheet open={cartOpen} onOpenChange={setCartOpen}>
@@ -77,14 +100,10 @@ export function CartSheet() {
           <Button
             size="lg"
             className="w-full rounded-full transition-transform hover:scale-[1.02]"
-            disabled={!cart.length}
-            onClick={() => {
-              clearCart();
-              setCartOpen(false);
-              toast.success("Order placed! A pharmacist will call to confirm.");
-            }}
+            disabled={!cart.length || checkingOut}
+            onClick={handleCheckout}
           >
-            {t("checkout")}
+            {checkingOut ? "Processing..." : t("checkout")}
           </Button>
         </SheetFooter>
       </SheetContent>

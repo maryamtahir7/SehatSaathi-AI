@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
 import { suggestedPrompts } from "@/lib/mock-data";
 import { useApp } from "@/lib/app-context";
+import { productService } from "@/lib/appwrite";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({
@@ -245,7 +246,7 @@ function Chat() {
                         >
                           <div className="flex size-10 items-center justify-center overflow-hidden rounded-xl bg-primary-soft/70 text-lg shrink-0">
                             {prod.image_url ? (
-                              <img src={prod.image_url} alt={prod.name} className="h-full w-full object-cover" />
+                              <img src={productService.getImageUrl(prod.image_url)} alt={prod.name} className="h-full w-full object-cover" />
                             ) : (
                               prod.emoji || "💊"
                             )}

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useApp } from "@/lib/app-context";
 import { productService, orderService, databases, DB, COL, ID, Query } from "@/lib/appwrite";
 import { formatPKR } from "@/lib/app-context";
@@ -64,6 +65,15 @@ function AdminDashboard() {
   const [pImage, setPImage]       = useState("");
   const [saving, setSaving]       = useState(false);
   const [editId, setEditId]       = useState<string | null>(null);
+
+  const updateOrderStatus = async (orderId: string, status: string) => {
+    try {
+      await databases.updateDocument(DB, COL.orders, orderId, { status });
+      setOrders(prev => prev.map(o => o.$id === orderId ? { ...o, status } : o));
+    } catch (e) {
+      console.error("Failed to update status", e);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -215,7 +225,7 @@ function AdminDashboard() {
                     <motion.div key={p.$id} initial={{ opacity:0 }} animate={{ opacity:1 }}>
                       <Card className="rounded-2xl border-border/60 p-4 shadow-soft flex items-center gap-4">
                         <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl bg-primary-soft/70 text-2xl shrink-0">
-                          {p.image_url ? <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" /> : (p.emoji || "💊")}
+                          {p.image_url ? <img src={productService.getImageUrl(p.image_url)} alt={p.name} className="h-full w-full object-cover" /> : (p.emoji || "💊")}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold truncate">{p.name}</p>
@@ -242,22 +252,61 @@ function AdminDashboard() {
             ) : orders.length === 0 ? (
               <Card className="rounded-3xl border-border/60 p-8 text-center text-muted-foreground">No orders yet.</Card>
             ) : (
-              <div className="space-y-3">
-                {orders.map(o => (
-                  <Card key={o.$id} className="rounded-2xl border-border/60 p-4 shadow-soft">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold font-mono text-sm">{o.$id.slice(-8).toUpperCase()}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(o.$createdAt).toLocaleDateString("en-PK")}</p>
+              <div className="space-y-4">
+                {orders.map(o => {
+                  let parsedItems: any[] = [];
+                  try { if (o.items) parsedItems = JSON.parse(o.items); } catch {}
+                  return (
+                    <Card key={o.$id} className="rounded-2xl border-border/60 p-5 shadow-soft flex flex-col md:flex-row gap-5">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-semibold font-mono text-sm text-foreground/80">Order #{o.$id.slice(-8).toUpperCase()}</p>
+                            <p className="text-xs text-muted-foreground">{new Date(o.$createdAt).toLocaleString("en-PK")}</p>
+                          </div>
+                          <div className="text-right block md:hidden">
+                            <p className="font-bold text-primary">{formatPKR(o.total || 0)}</p>
+                          </div>
+                        </div>
+                        
+                        {parsedItems.length > 0 ? (
+                          <div className="rounded-xl border border-border/40 bg-secondary/30 p-3 space-y-2">
+                            {parsedItems.map((item, idx) => (
+                              <div key={idx} className="flex justify-between text-sm">
+                                <span className="text-foreground/80">{item.qty}x {item.name}</span>
+                                <span className="text-muted-foreground">{formatPKR(item.price * item.qty)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">{o.items}</p>
+                        )}
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-primary">{formatPKR(o.total || 0)}</p>
-                        <Badge variant="outline" className="text-xs mt-1">{o.status || "Pending"}</Badge>
+                      
+                      <div className="w-full md:w-48 shrink-0 flex flex-col gap-3 justify-between md:border-l md:border-border/40 md:pl-5">
+                        <div className="hidden md:block">
+                          <p className="text-xs text-muted-foreground mb-1">Total Amount</p>
+                          <p className="font-bold text-primary text-lg">{formatPKR(o.total || 0)}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground mb-1">Status</p>
+                          <Select value={o.status || "Pending"} onValueChange={(v) => updateOrderStatus(o.$id, v)}>
+                            <SelectTrigger className="h-8 text-xs rounded-xl">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pending">Pending</SelectItem>
+                              <SelectItem value="Processing">Processing</SelectItem>
+                              <SelectItem value="Shipped">Shipped</SelectItem>
+                              <SelectItem value="Delivered">Delivered</SelectItem>
+                              <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                    </div>
-                    {o.items && <p className="mt-2 text-xs text-muted-foreground truncate">{o.items}</p>}
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
