@@ -14,46 +14,47 @@ def get_mime_type(image_bytes: bytes) -> str:
     return 'image/jpeg' # fallback
 
 def gemini_extract_text(image_bytes: bytes) -> str:
-    """Use Gemini Vision API to extract text from a prescription image."""
-    api_key = os.getenv("GEMINI_API_KEY", "AIzaSyCP0pJHOZ80KgTXQBDwlhtYR-c1iWb2YyU")
-    url = (
-        f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"gemini-flash-latest:generateContent?key={api_key}"
-    )
+    """Use OpenAI API to extract text from a prescription image (Function kept same name for compatibility)."""
+    api_key = os.getenv("OPENAI_API_KEY", "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")
+    url = "https://api.openai.com/v1/chat/completions"
 
     b64_img = base64.b64encode(image_bytes).decode("utf-8")
     mime_type = get_mime_type(image_bytes)
 
     payload = {
-        "contents": [
+        "model": "gpt-4o-mini",
+        "messages": [
             {
-                "parts": [
+                "role": "user",
+                "content": [
                     {
-                        "text": (
-                            "This is a medical prescription image. "
-                            "Please extract ALL text from it exactly as written, "
-                            "especially medicine names, dosages, and instructions. "
-                            "Return only the extracted text."
-                        )
+                        "type": "text",
+                        "text": "This is a medical prescription image. Please extract ALL text from it exactly as written, especially medicine names, dosages, and instructions. Return only the extracted text."
                     },
-                    {"inline_data": {"mime_type": mime_type, "data": b64_img}},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{mime_type};base64,{b64_img}"
+                        }
+                    }
                 ]
             }
         ],
-        "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048},
+        "max_tokens": 1500,
+        "temperature": 0.1
+    }
+    
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
     }
 
     try:
-        response = requests.post(url, json=payload, timeout=25)
+        response = requests.post(url, headers=headers, json=payload, timeout=25)
         if response.status_code == 200:
             data = response.json()
-            candidates = data.get("candidates", [])
-            if candidates:
-                parts = candidates[0].get("content", {}).get("parts", [])
-                if parts:
-                    return parts[0].get("text", "")
-            return "ERROR: Gemini returned empty result."
+            return data["choices"][0]["message"]["content"]
         else:
-            return f"ERROR: Gemini API status {response.status_code}: {response.text[:200]}"
+            return f"ERROR: OpenAI API status {response.status_code}: {response.text[:200]}"
     except Exception as e:
-        return f"ERROR: Gemini OCR failed: {str(e)}"
+        return f"ERROR: OpenAI OCR failed: {str(e)}"
