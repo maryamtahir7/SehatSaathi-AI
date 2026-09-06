@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { HeartPulse, SendHorizonal, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -111,16 +113,37 @@ function Chat() {
               className={`flex ${m.role === "user" ? "justify-end" : m.role === "system" ? "justify-center" : "justify-start"}`}
             >
               <div
-                className={`max-w-[85%] rounded-3xl px-4 py-3 text-sm leading-relaxed shadow-soft sm:max-w-[75%] ${
+                className={`max-w-[85%] rounded-3xl px-5 py-4 text-sm leading-relaxed shadow-soft sm:max-w-[75%] ${
                   m.role === "user"
                     ? "bg-primary text-primary-foreground"
                     : m.role === "system"
                     ? "bg-destructive/10 text-destructive border border-destructive/20 text-xs"
-                    : "bg-secondary text-secondary-foreground"
+                    : "bg-secondary text-secondary-foreground markdown-content"
                 }`}
-                style={{ whiteSpace: 'pre-wrap' }}
               >
-                {m.text}
+                {m.role === "user" || m.role === "system" ? (
+                   <span style={{ whiteSpace: 'pre-wrap' }}>{m.text}</span>
+                ) : (
+                   <ReactMarkdown 
+                     remarkPlugins={[remarkGfm]}
+                     components={{
+                       table: ({node, ...props}) => <div className="overflow-x-auto my-3"><table className="w-full border-collapse text-xs md:text-sm" {...props} /></div>,
+                       th: ({node, ...props}) => <th className="border border-border/50 bg-background/50 px-3 py-2 text-left font-semibold" {...props} />,
+                       td: ({node, ...props}) => <td className="border border-border/50 px-3 py-2" {...props} />,
+                       p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} />,
+                       ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-3 space-y-1" {...props} />,
+                       ol: ({node, ...props}) => <ol className="list-decimal pl-5 mb-3 space-y-1" {...props} />,
+                       li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                       h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-3 mt-4" {...props} />,
+                       h2: ({node, ...props}) => <h2 className="text-base font-bold mb-3 mt-4" {...props} />,
+                       h3: ({node, ...props}) => <h3 className="text-sm font-bold mb-2 mt-3" {...props} />,
+                       strong: ({node, ...props}) => <strong className="font-semibold text-primary" {...props} />,
+                       a: ({node, ...props}) => <a className="text-primary underline hover:text-primary/80" {...props} />
+                     }}
+                   >
+                     {m.text}
+                   </ReactMarkdown>
+                )}
               </div>
             </motion.div>
           ))}
