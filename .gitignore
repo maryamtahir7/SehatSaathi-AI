@@ -4,11 +4,16 @@ venv/
 .venv_win/
 __pycache__/
 *.pyc
+py_env/
+backend/.venv_convert/
 
 # Node
 frontend/node_modules/
 frontend/.next/
 frontend/.vercel/
+frontend/dist/
+frontend/.nitro/
+frontend/.output/
 
 # Environment Variables
 .env
@@ -22,3 +27,12 @@ frontend/.vercel/
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Other
+miniconda.exe
+python.zip
+arzo-healthcare-main.zip
+frontend_backup/
+scratch/
+backend/models/*.keras
+backend/models/*.h5

@@ -1,0 +1,60 @@
+import { Link } from "@tanstack/react-router";
+import { HeartPulse, Phone, Mail, MapPin } from "lucide-react";
+import { useApp } from "@/lib/app-context";
+
+export function Footer() {
+  const { t } = useApp();
+  return (
+    <footer className="mt-24 border-t border-border/60 bg-card/50 no-print">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-4 lg:px-8">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2.5">
+            <span className="gradient-primary flex size-9 items-center justify-center rounded-xl text-primary-foreground">
+              <HeartPulse className="size-5" />
+            </span>
+            <span className="font-display text-lg font-semibold">{t("brand")}</span>
+          </div>
+          <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+            Clinically-informed AI tools for scans, symptoms, nutrition and medicines — built for
+            families across Pakistan.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-semibold">{t("quick_links")}</h4>
+          <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+            <li><Link to="/diagnostics" className="transition-colors hover:text-primary">{t("nav_diagnostics")}</Link></li>
+            <li><Link to="/symptoms" className="transition-colors hover:text-primary">{t("nav_symptoms")}</Link></li>
+            <li><Link to="/diet" className="transition-colors hover:text-primary">{t("nav_diet")}</Link></li>
+            <li><Link to="/pharmacy" className="transition-colors hover:text-primary">{t("nav_pharmacy")}</Link></li>
+            <li><Link to="/chat" className="transition-colors hover:text-primary">{t("nav_chat")}</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-semibold">Company</h4>
+          <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+            <li>About SehatSaathi</li>
+            <li>{t("terms")}</li>
+            <li>{t("privacy")}</li>
+            <li>Partner with us</li>
+            <li>Careers</li>
+          </ul>
+        </div>
+
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-5">
+          <h4 className="text-sm font-semibold text-destructive">{t("emergency")}</h4>
+          <ul className="mt-4 space-y-3 text-sm">
+            <li className="flex items-center gap-2"><Phone className="size-4 text-destructive" /> Rescue 1122</li>
+            <li className="flex items-center gap-2"><Phone className="size-4 text-destructive" /> +92 300 000 0000</li>
+            <li className="flex items-center gap-2"><Mail className="size-4 text-muted-foreground" /> care@sehatsaathi.ai</li>
+            <li className="flex items-center gap-2"><MapPin className="size-4 text-muted-foreground" /> Gulberg III, Lahore</li>
+          </ul>
+        </div>
+      </div>
+      <div className="border-t border-border/60 px-4 py-6 text-center text-xs text-muted-foreground">
+        © {new Date().getFullYear()} SehatSaathi AI. All rights reserved. {t("disclaimer")}
+      </div>
+    </footer>
+  );
+}

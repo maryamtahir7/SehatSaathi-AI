@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     },
     {
       "src": "py-api/index.py",
@@ -11,6 +14,48 @@
       "config": {
         "includeFiles": "py-api/**/*.{pkl,onnx,csv,safetensors,json}"
       }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/py-api/index.py"
+    },
+    {
+      "source": "/symptoms",
+      "destination": "/py-api/index.py"
+    },
+    {
+      "source": "/predict-disease",
+      "destination": "/py-api/index.py"
+    },
+    {
+      "source": "/recommendations/:path*",
+      "destination": "/py-api/index.py"
+    },
+    {
+      "source": "/analyze-medical-image",
+      "destination": "/py-api/index.py"
+    },
+    {
+      "source": "/scan-prescription",
+      "destination": "/py-api/index.py"
+    },
+    {
+      "source": "/medicines/:path*",
+      "destination": "/py-api/index.py"
+    },
+    {
+      "source": "/checkout",
+      "destination": "/py-api/index.py"
+    },
+    {
+      "source": "/health/:path*",
+      "destination": "/py-api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

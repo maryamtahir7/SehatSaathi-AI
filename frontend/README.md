@@ -1,93 +1,134 @@
-# AI-Based Healthcare Diagnosis and Recommendation System
+# SehatSaathi AI Health
 
-This frontend is part of an AI-powered healthcare platform that combines machine learning and deep learning (ResNet50) to support disease prediction, medical image analysis, prescription understanding, and medicine purchase workflows.
+Build a highly premium, state-of-the-art healthcare web application named "SehatSaathi AI". The application provides AI-powered medical diagnostics, a symptom checker, personalized diet plans, an online pharmacy, prescription scanning, and an AI chatbot. 
 
-## System Description
+TECH STACK & DESIGN SYSTEM:
 
-The system allows users to:
+- Framework: React (Next.js/Vite routing style)
 
-- Enter symptoms (fever, headache, fatigue, chest pain, etc.) for disease prediction
-- Upload medical images (X-ray, MRI, prescription scans)
-- Get disease, medicine, lab test, and diet recommendations
-- Extract medicine names from prescription images using OCR + NLP
-- Purchase recommended/prescribed medicines from an integrated e-commerce module
+- Styling: Tailwind CSS
 
-## System Workflow
+- Components: shadcn/ui (Cards, Tabs, Buttons, Dialogs, Sheet for cart, Toast for notifications, Select, Badges)
 
-### 1) Symptom-Based Input
+- Icons: Lucide React
 
-Users enter symptoms in the diagnose flow.
+- Animations: Framer Motion (smooth page transitions, micro-interactions, scanning overlays)
 
-### 2) Disease Prediction (Machine Learning)
+- Color Palette: Trust-focused Healthcare theme. Primary: Teal (teal-600), Secondary: Slate/Blue-gray. Soft gradients, clean white backgrounds, glassmorphism on modals/navbars, and soft drop shadows for depth. Dark mode support should be included.
 
-A trained ML classifier predicts probable diseases and confidence scores.
+GLOBAL COMPONENTS & FEATURES:
 
-### 3) Medical Image Analysis (ResNet50)
+1. Multi-Language & RTL Support: Include an "English / Urdu (اردو)" toggle in the Navbar. When Urdu is selected, the UI should support RTL (Right-to-Left) layout natively.
 
-A pre-trained ResNet50 model is used for medical image feature extraction and pattern recognition:
+2. Navbar: Sticky, glassmorphism top navigation. Left: "SehatSaathi AI" Logo (with a teal medical cross). Center: Links (Home, Diagnostics, Diet Plan, Pharmacy, Chat). Right: Language Toggle, Dark Mode toggle, Cart Icon (with red notification badge), and a rounded "Sign In" button.
 
-- Feature extraction from images
-- Pattern recognition (normal vs abnormal)
-- Support for disease classification
+3. Footer: Elegant footer with quick links, copyright, terms of service, and 24/7 emergency contact info.
 
-### 4) Medicine Recommendation Module
+PAGES & MODULES TO GENERATE:
 
-The system maps predicted diseases to suitable medicines from a structured dataset.
+1. Landing Page (Home):
 
-### 5) Lab Test Recommendation
+- Hero Section: A large, welcoming headline "Your Personal AI Healthcare Companion". A subtitle explaining 24/7 AI-powered health monitoring. Two beautiful call-to-action buttons: "Start Free Diagnosis" (Solid Teal) and "Order Medicines" (Outline).
 
-Relevant medical tests are suggested for further diagnosis support.
+- Features Grid: 5 sleek, hoverable feature cards (AI Imaging, Symptom Checker, Diet Planner, Prescription OCR, E-Pharmacy).
 
-### 6) Diet Recommendation Module
+- How it Works: 3 simple step cards (Upload -> Analyze -> Get Results).
 
-Personalized diet suggestions are provided according to diagnosed conditions.
+2. AI Medical Imaging Dashboard (Image Analysis):
 
-### 7) Prescription OCR + NLP Module
+- Layout: A clean, centered dashboard with 3 interactive Tabs at the top: [X-Ray (Pneumonia)] | [MRI (Brain Tumor)] | [Skin Analysis].
 
-Uploaded prescriptions are processed to extract text and identify medicine names.
+- Upload Area: A massive, dashed-border drag-and-drop zone with a cloud icon. 
 
-- OCR: Tesseract OCR
-- NLP: spaCy
+- Idle State: "Drag & drop your medical scan here or click to browse".
 
-### 8) Medicine Purchase System (E-Commerce)
+- Loading State: An animated scanning laser line moving up and down the uploaded image with a spinner saying "SehatSaathi AI is analyzing your scan...".
 
-Users can browse, add to cart, and checkout medicines directly on the platform.
+- Results UI: A sleek Results Card showing: 
 
-## System Modules
+  - "Primary Finding" (Large bold text, e.g., "Pneumonia Detected").
 
-- Symptom-based Disease Prediction (ML Models)
-- Medical Image Classification (ResNet50 Deep Learning)
-- Medicine Recommendation System
-- Lab Test Recommendation System
-- Diet Recommendation System
-- Prescription OCR + NLP System
-- Medicine E-Commerce System
+  - "Confidence Score" (A circular or linear progress bar showing percentage, e.g., "89%").
 
-## Technology Stack
+  - "Clinical Notes" (A text box with doctor-like recommendations).
 
-- Backend: FastAPI
-- Frontend: React / Next.js
-- Deep Learning: ResNet50
-- Machine Learning: Scikit-learn
-- OCR: Tesseract OCR
-- NLP: spaCy
+  - Disclaimer Banner: "Generated by AI. Please consult a doctor."
 
-## Key Features
+3. Symptom Checker & Disease Predictor:
 
-- Hybrid AI system (ML + Deep Learning)
-- Symptom-based disease prediction
-- Medical image analysis using ResNet50
-- Prescription scanning and medicine extraction
-- Medicine recommendation and purchase system
-- Fully offline design (no external API dependency)
+- Layout: Two-column layout or a centered interactive card.
 
-## Frontend Setup
+- Inputs: A multi-select combobox (tag-input) where users type and add symptoms (e.g., Fever, Headache).
 
-Run in development mode:
+- Button: "Predict Disease" with a loading state.
 
-```bash
-npm install
+- Results UI: An expandable accordion or card showing the Top 3 predicted diseases, recommended precautions, and an "Ask AI Assistant" button.
+
+4. Diet & Nutrition Planner (Personalized):
+
+- Form Section: Clean input fields for Age, Weight (kg), Height (cm), Gender. A Select dropdown for Goal (Weight Loss, Weight Gain, Maintenance). A multi-select for Dietary Restrictions (e.g., Diabetes, Hypertension, Gluten-Free).
+
+- Button: "Generate Custom Diet Plan".
+
+- Results UI: A beautifully formatted Weekly/Daily Meal Plan table or grid of cards (Breakfast, Lunch, Dinner, Snacks). Include calorie estimates and a "Print Plan" button.
+
+5. Prescription OCR Scanner:
+
+- Upload Area: Camera icon or drag-and-drop zone specifically for handwritten or printed doctor prescriptions.
+
+- Results UI: A structured, modern data table displaying extracted text: columns for "Medicine Name", "Dosage", and "Frequency". 
+
+- Action: A button on each row to "Add to Pharmacy Cart".
+
+6. E-Pharmacy / Medical Store:
+
+- Header: A large search bar and category pill-filters (Vitamins, First Aid, Supplements, Equipment).
+
+- Product Grid: Masonry or grid layout of medicine cards. Each card has a product image, name, price, and a vibrant "Add to Cart" button.
+
+- Slide-out Cart (Sheet): When clicking the cart icon in the navbar, a right-side drawer slides in showing selected items, quantity adjusters (+/-), total price, and a large "Proceed to Checkout" button.
+
+7. AI Health Assistant (Chatbot):
+
+- Layout: A full-height messaging interface.
+
+- Chat Area: User messages on the right (Teal bubble), AI messages on the left (Light gray/slate bubble). 
+
+- Features: Suggested prompt chips above the chat input (e.g., "What are the symptoms of flu?", "How to reduce blood pressure?").
+
+- Input Area: A sleek text input at the bottom with a paper airplane send button.
+
+8. Authentication:
+
+- Provide a clean, centered Sign In / Sign Up modal or page with Email/Password fields and "Continue with Google" buttons.
+
+UX/UI REQUIREMENTS:
+
+- Premium Feel: The UI must look incredibly spacious, polished, and uncluttered. Avoid harsh borders; use soft shadows and rounded corners (rounded-2xl).
+
+- Interactions: Add micro-animations (buttons scale up slightly on hover, cards lift on hover).
+
+- Responsive: The entire application must be perfectly responsive for mobile devices (hamburger menu for mobile navbar).
+
+- Fill in missing gaps with realistic placeholder data to make the design look complete.
+
+This project was built with [Lovable](https://lovable.dev).
+
+## Build with Lovable
+
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/454fce85-7c71-4cc8-a329-33259c6bcbea).
+
+- **Ship faster**: describe what you want to build and Lovable handles the code.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+
+## Development
+
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+
+```sh
+git clone <this-repository-url>
+cd <repository-name>
+npm i
 npm run dev
 ```
-
-Then open `http://localhost:3000`.
