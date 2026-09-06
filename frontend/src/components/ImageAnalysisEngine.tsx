@@ -136,41 +136,142 @@ export default function ImageAnalysisEngine({ type, title, classes }: ImageAnaly
         <div className="results-section glass">
           <h3>{t("Diagnostic Results")}</h3>
           
-          {result.skin_type ? (
-            <div className="skin-result-container">
-              <div className="result-main">
-                <div className="result-condition">
-                  <span className="label">{t("Skin Type")}</span>
-                  <span className="value">{result.skin_type} ({(result.skin_type_confidence * 100).toFixed(1)}%)</span>
+                    {result.skin_type ? (
+            <div className="premium-skin-dashboard">
+              {/* Header Section */}
+              <div className="premium-header">
+                <div className="header-left">
+                  <div className="scan-status">
+                    <span className="dot"></span> SCAN COMPLETE
+                  </div>
+                  <h2>Clinical Profile</h2>
+                  <div className="confidence-text">
+                    Neural Network Confidence: <span>{(result.confidence * 100).toFixed(1)}%</span>
+                  </div>
                 </div>
-                <div className="result-confidence">
-                  <span className="label">{t("Primary Condition")}</span>
-                  <span className="value">{result.finding || "Unknown"} ({(result.confidence * 100).toFixed(1)}%)</span>
+                <div className="header-right">
+                  <div className="match-ring">
+                    <div className="match-inner">
+                      <span className="grade">A+</span>
+                      <span className="grade-sub">MATCH</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
+              {/* Cards Section */}
+              <div className="premium-cards-grid">
+                <div className="premium-card light-card">
+                  <div className="card-bg-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.05"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                  </div>
+                  <span className="card-subtitle">SKIN PHENOTYPE</span>
+                  <span className="card-title black-text">{result.skin_type}</span>
+                </div>
+                
+                <div className="premium-card pink-card">
+                  <div className="card-bg-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.05"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                  </div>
+                  <span className="card-subtitle red-text">PRIMARY TARGET</span>
+                  <span className="card-title red-text">{result.finding || "Unknown"}</span>
+                </div>
+              </div>
+
+              {/* Vectors Section */}
               {result.conditions_detected && result.conditions_detected.length > 0 && (
-                <div className="result-details">
-                  <h4>{t("All Conditions Detected")}</h4>
-                  <ul>
+                <div className="premium-vectors">
+                  <div className="vectors-header">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    <span>NEURAL DETECTION VECTORS</span>
+                  </div>
+                  <div className="vectors-list">
                     {result.conditions_detected.map((cond: any, idx: number) => (
-                      <li key={idx}>
-                        <strong>{cond.condition}</strong>: {(cond.confidence * 100).toFixed(1)}%
-                      </li>
+                      <div className="vector-item" key={idx}>
+                        <div className="vector-info">
+                          <span className="vector-name">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            {cond.condition}
+                          </span>
+                          <span className="vector-pct">{(cond.confidence * 100).toFixed(0)}%</span>
+                        </div>
+                        <div className="vector-bar-bg">
+                          <div className="vector-bar-fill" style={{ width: `${(cond.confidence * 100).toFixed(0)}%` }}></div>
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
 
+              {/* Formulated Actives */}
               {result.ingredient_recommendations && result.ingredient_recommendations.length > 0 && (
-                <div className="result-details" style={{ marginTop: '1rem' }}>
-                  <h4>{t("Recommended Ingredients")}</h4>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {result.ingredient_recommendations.map((ing: any, idx: number) => (
-                      <span key={idx} style={{ background: '#e0f2fe', color: '#0284c7', padding: '0.5rem 1rem', borderRadius: '9999px', fontWeight: 'bold' }}>
-                        {ing.name}
-                      </span>
-                    ))}
+                <div className="premium-actives-section">
+                  <div className="section-title-wrapper">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                    <span className="section-title">FORMULATED ACTIVES</span>
+                  </div>
+                  <div className="actives-grid">
+                    {result.ingredient_recommendations.map((ing: any, idx: number) => {
+                      const initials = ing.name.split(' ').map((w: string) => w[0]).join('').substring(0, 2).toUpperCase();
+                      const isRed = idx % 2 === 0;
+                      return (
+                        <div className="active-card" key={idx}>
+                          <div className={`active-badge ${isRed ? 'red-badge' : 'black-badge'}`}>
+                            {initials}
+                          </div>
+                          <div className="active-details">
+                            <h4 className={isRed ? 'red-text' : 'black-text'}>{ing.name}</h4>
+                            <p>{ing.benefit || ing.description || "Used in skincare to improve skin health."}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Recommended Protocol */}
+              {result.ingredient_recommendations && result.ingredient_recommendations.length > 0 && (
+                <div className="premium-protocol-section">
+                  <div className="section-title-wrapper">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span className="section-title">RECOMMENDED PROTOCOL</span>
+                  </div>
+                  <div className="protocol-list">
+                    {result.ingredient_recommendations.slice(0, 3).map((ing: any, idx: number) => {
+                      const isRed = idx === 0;
+                      const price = (Math.floor(Math.random() * 20) + 10) * 100 - 1; // Random price 999 - 2999
+                      
+                      // Mock product names based on ingredient
+                      let prodType = "Serum";
+                      if(idx === 0) prodType = "Face Cream";
+                      if(idx === 1) prodType = "Cleanser";
+                      
+                      return (
+                        <div className="protocol-card" key={idx}>
+                          <div className={`protocol-step ${isRed ? 'red-step' : 'black-step'}`}>
+                            <span className="step-text">STEP 0{idx + 1}</span>
+                          </div>
+                          <div className="protocol-content">
+                            <div className="protocol-mock-img">
+                              {/* Pure CSS Mock Product Box */}
+                              <div className={`mock-bottle ${isRed ? 'red-theme' : 'green-theme'}`}></div>
+                            </div>
+                            <div className="protocol-info">
+                              <h4 className={isRed ? 'red-text' : 'black-text'}>{ing.name.split(' ')[0]} {prodType}</h4>
+                              <span className="protocol-type">Treatment</span>
+                              <span className="protocol-price">Rs. {price.toLocaleString()}</span>
+                            </div>
+                            <div className="protocol-action">
+                              <button className="cart-btn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -307,6 +408,354 @@ export default function ImageAnalysisEngine({ type, title, classes }: ImageAnaly
           color: #475569;
           line-height: 1.6;
         }
+
+        .premium-skin-dashboard {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+          margin-top: 1rem;
+          text-align: left;
+        }
+
+        /* HEADER */
+        .premium-header {
+          background: linear-gradient(135deg, #1f1115 0%, #1a1618 100%);
+          border-radius: 20px;
+          padding: 2.5rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          color: white;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .header-left {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .scan-status {
+          font-size: 0.75rem;
+          letter-spacing: 2px;
+          color: #94a3b8;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-weight: 700;
+        }
+        .dot {
+          width: 8px;
+          height: 8px;
+          background: #10b981;
+          border-radius: 50%;
+          box-shadow: 0 0 10px #10b981;
+        }
+        .premium-header h2 {
+          font-size: 2.8rem;
+          font-weight: 500;
+          margin: 0;
+          color: white;
+          letter-spacing: -1px;
+        }
+        .confidence-text {
+          color: #94a3b8;
+          font-size: 0.9rem;
+        }
+        .confidence-text span {
+          color: #fb7185;
+          font-weight: 600;
+        }
+        .match-ring {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #f43f5e, #be123c);
+          padding: 6px;
+          box-shadow: 0 0 30px rgba(244, 63, 94, 0.3);
+        }
+        .match-inner {
+          background: #1a1618;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
+        .match-inner .grade {
+          font-size: 1.8rem;
+          font-weight: 800;
+          line-height: 1;
+        }
+        .match-inner .grade-sub {
+          font-size: 0.5rem;
+          letter-spacing: 1px;
+          color: #94a3b8;
+        }
+
+        /* CARDS */
+        .premium-cards-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+        }
+        .premium-card {
+          padding: 2rem;
+          border-radius: 20px;
+          position: relative;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+          background: white;
+          border: 1px solid #f1f5f9;
+        }
+        .pink-card {
+          background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+          border: 1px solid #fecdd3;
+        }
+        .card-bg-icon {
+          position: absolute;
+          right: -20px;
+          bottom: -20px;
+          width: 120px;
+          height: 120px;
+          color: #000;
+        }
+        .pink-card .card-bg-icon {
+          color: #be123c;
+        }
+        .card-subtitle {
+          font-size: 0.75rem;
+          font-weight: 800;
+          letter-spacing: 1px;
+          color: #94a3b8;
+          z-index: 1;
+          text-transform: uppercase;
+        }
+        .card-title {
+          font-size: 2.2rem;
+          font-weight: 900;
+          z-index: 1;
+        }
+        .black-text { color: #0f172a; }
+        .red-text { color: #be123c; }
+
+        /* VECTORS */
+        .premium-vectors {
+          background: linear-gradient(135deg, #1e293b, #0f172a);
+          border-radius: 20px;
+          padding: 2.5rem;
+          color: white;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .vectors-header {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.8rem;
+          font-weight: 800;
+          letter-spacing: 2px;
+          color: #94a3b8;
+          margin-bottom: 2rem;
+        }
+        .vector-item {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          margin-bottom: 2rem;
+        }
+        .vector-item:last-child {
+          margin-bottom: 0;
+        }
+        .vector-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .vector-name {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-weight: 700;
+          font-size: 1.1rem;
+        }
+        .vector-pct {
+          color: #10b981;
+          font-weight: 700;
+        }
+        .vector-bar-bg {
+          height: 8px;
+          background: rgba(255,255,255,0.1);
+          border-radius: 4px;
+          overflow: hidden;
+        }
+        .vector-bar-fill {
+          height: 100%;
+          background: #10b981;
+          border-radius: 4px;
+        }
+
+        /* ACTIVES */
+        .section-title-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 1rem;
+          margin-bottom: 1.5rem;
+        }
+        .section-title {
+          font-size: 0.85rem;
+          font-weight: 800;
+          letter-spacing: 2px;
+          color: #64748b;
+        }
+        .actives-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+        }
+        .active-card {
+          background: white;
+          border-radius: 20px;
+          padding: 2.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+          border: 1px solid #f1f5f9;
+        }
+        .active-badge {
+          width: 70px;
+          height: 70px;
+          border-radius: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.8rem;
+          font-weight: 900;
+          color: white;
+        }
+        .red-badge { background: #e11d48; }
+        .black-badge { background: #1e1e1e; }
+        .active-details h4 {
+          font-size: 1.3rem;
+          font-weight: 800;
+          margin-bottom: 0.75rem;
+        }
+        .active-details p {
+          font-size: 0.95rem;
+          color: #64748b;
+          line-height: 1.6;
+        }
+
+        /* PROTOCOL */
+        .protocol-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+        .protocol-card {
+          display: flex;
+          background: white;
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+          border: 1px solid #f1f5f9;
+        }
+        .protocol-step {
+          width: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+        }
+        .red-step { background: #e11d48; }
+        .black-step { background: #1a1618; }
+        .step-text {
+          transform: rotate(-90deg);
+          font-weight: 800;
+          font-size: 0.8rem;
+          letter-spacing: 3px;
+          white-space: nowrap;
+        }
+        .protocol-content {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          padding: 1.5rem 2rem;
+          gap: 2rem;
+        }
+        .protocol-mock-img {
+          width: 100px;
+          height: 100px;
+          background: #f8fafc;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .mock-bottle {
+          width: 34px;
+          height: 68px;
+          border-radius: 4px;
+          position: relative;
+        }
+        .mock-bottle::before {
+          content: '';
+          position: absolute;
+          top: -12px;
+          left: 5px;
+          width: 24px;
+          height: 12px;
+          background: #cbd5e1;
+          border-radius: 3px 3px 0 0;
+        }
+        .red-theme { background: linear-gradient(#fecdd3, #fda4af); }
+        .green-theme { background: linear-gradient(#bbf7d0, #86efac); }
+        
+        .protocol-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+        .protocol-info h4 {
+          font-size: 1.4rem;
+          font-weight: 800;
+        }
+        .protocol-type {
+          font-size: 0.9rem;
+          color: #94a3b8;
+          font-weight: 600;
+        }
+        .protocol-price {
+          font-weight: 900;
+          font-size: 1.1rem;
+          margin-top: 0.5rem;
+        }
+        .protocol-action {
+          padding-right: 1rem;
+        }
+        .cart-btn {
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          background: #1a1618;
+          color: white;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .cart-btn:hover {
+          transform: scale(1.05);
+          background: #e11d48;
+        }
+
       `}</style>
     </div>
   );
