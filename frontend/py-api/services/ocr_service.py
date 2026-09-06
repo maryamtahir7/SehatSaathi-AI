@@ -133,6 +133,7 @@ def extract_text_from_image(image_bytes: bytes) -> str:
             print(f"[OCR] Tesseract failed: {e}")
 
     # --- 3. FALLBACK: Free OCR.Space API ---
+    ocr_space_err = None
     try:
         response = requests.post(
             'https://api.ocr.space/parse/image',
@@ -149,10 +150,15 @@ def extract_text_from_image(image_bytes: bytes) -> str:
                 if text.strip():
                     print("[OCR] OCR.Space succeeded.")
                     return text.strip()
+            else:
+                ocr_space_err = result.get('ErrorMessage', 'Unknown OCR.Space error')
+        else:
+            ocr_space_err = f"OCR.Space HTTP {response.status_code}"
     except Exception as e:
+        ocr_space_err = str(e)
         print(f"[OCR] OCR.Space failed: {e}")
 
-    return gemini_err or "ERROR: All OCR engines failed. Please upload a clearer prescription image."
+    return f"{gemini_err}\n\n[Fallback OCR.Space Error]: {ocr_space_err}" if gemini_err else "ERROR: All OCR engines failed. Please upload a clearer prescription image."
 
 def identify_medicines(text: str) -> list[dict]:
     import difflib
