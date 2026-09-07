@@ -102,8 +102,12 @@ function Prescription() {
 
     try {
       setOcrProgress("Starting text recognition...");
-      // Use the preview blob URL instead of the File object to prevent File object serialization issues in v7 workers
-      const { data: { text } } = await workerRef.current.recognize(preview);
+      const imgElement = document.getElementById("prescription-img") as HTMLImageElement;
+      if (!imgElement) {
+        throw new Error("Could not find the image element to scan.");
+      }
+      
+      const { data: { text } } = await workerRef.current.recognize(imgElement);
 
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
       const meds: any[] = [];
@@ -207,7 +211,7 @@ function Prescription() {
           ) : (
             <div className="space-y-4">
               <div className="relative overflow-hidden rounded-3xl bg-secondary">
-                <img src={preview} alt="Prescription upload" className="max-h-[22rem] w-full object-contain" />
+                <img id="prescription-img" src={preview} alt="Prescription upload" className="max-h-[22rem] w-full object-contain" />
                 {status === "loading" && (
                   <>
                     <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex flex-col items-center justify-center text-primary-foreground font-semibold">
