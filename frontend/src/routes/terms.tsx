@@ -1,6 +1,11 @@
-import { PageShell } from "@/components/page-shell";
+import { PageShell } from "@/components/site/page-shell";
+import { createFileRoute } from '@tanstack/react-router';
 
-export function TermsOfService() {
+export const Route = createFileRoute('/terms')({
+  component: TermsOfService,
+});
+
+function TermsOfService() {
   return (
     <PageShell
       eyebrow="Legal"

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
@@ -17,11 +18,18 @@ import { Route as DietRouteImport } from './routes/diet'
 import { Route as HospitalsRouteImport } from './routes/hospitals'
 import { Route as PharmacyRouteImport } from './routes/pharmacy'
 import { Route as PrescriptionRouteImport } from './routes/prescription'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SymptomsRouteImport } from './routes/symptoms'
+import { Route as TermsRouteImport } from './routes/terms'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -59,14 +67,25 @@ const PrescriptionRoute = PrescriptionRouteImport.update({
   path: '/prescription',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SymptomsRoute = SymptomsRouteImport.update({
   id: '/symptoms',
   path: '/symptoms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/diagnostics': typeof DiagnosticsRoute
@@ -74,10 +93,13 @@ export interface FileRoutesByFullPath {
   '/hospitals': typeof HospitalsRoute
   '/pharmacy': typeof PharmacyRoute
   '/prescription': typeof PrescriptionRoute
+  '/privacy': typeof PrivacyRoute
   '/symptoms': typeof SymptomsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/diagnostics': typeof DiagnosticsRoute
@@ -85,11 +107,14 @@ export interface FileRoutesByTo {
   '/hospitals': typeof HospitalsRoute
   '/pharmacy': typeof PharmacyRoute
   '/prescription': typeof PrescriptionRoute
+  '/privacy': typeof PrivacyRoute
   '/symptoms': typeof SymptomsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/admin': typeof AdminRoute
   '/chat': typeof ChatRoute
   '/diagnostics': typeof DiagnosticsRoute
@@ -97,12 +122,15 @@ export interface FileRoutesById {
   '/hospitals': typeof HospitalsRoute
   '/pharmacy': typeof PharmacyRoute
   '/prescription': typeof PrescriptionRoute
+  '/privacy': typeof PrivacyRoute
   '/symptoms': typeof SymptomsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/admin'
     | '/chat'
     | '/diagnostics'
@@ -110,10 +138,13 @@ export interface FileRouteTypes {
     | '/hospitals'
     | '/pharmacy'
     | '/prescription'
+    | '/privacy'
     | '/symptoms'
+    | '/terms'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/admin'
     | '/chat'
     | '/diagnostics'
@@ -121,10 +152,13 @@ export interface FileRouteTypes {
     | '/hospitals'
     | '/pharmacy'
     | '/prescription'
+    | '/privacy'
     | '/symptoms'
+    | '/terms'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/admin'
     | '/chat'
     | '/diagnostics'
@@ -132,11 +166,14 @@ export interface FileRouteTypes {
     | '/hospitals'
     | '/pharmacy'
     | '/prescription'
+    | '/privacy'
     | '/symptoms'
+    | '/terms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRoute
   ChatRoute: typeof ChatRoute
   DiagnosticsRoute: typeof DiagnosticsRoute
@@ -144,7 +181,9 @@ export interface RootRouteChildren {
   HospitalsRoute: typeof HospitalsRoute
   PharmacyRoute: typeof PharmacyRoute
   PrescriptionRoute: typeof PrescriptionRoute
+  PrivacyRoute: typeof PrivacyRoute
   SymptomsRoute: typeof SymptomsRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -154,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -205,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrescriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/symptoms': {
       id: '/symptoms'
       path: '/symptoms'
@@ -212,11 +265,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SymptomsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   AdminRoute: AdminRoute,
   ChatRoute: ChatRoute,
   DiagnosticsRoute: DiagnosticsRoute,
@@ -224,7 +285,9 @@ const rootRouteChildren: RootRouteChildren = {
   HospitalsRoute: HospitalsRoute,
   PharmacyRoute: PharmacyRoute,
   PrescriptionRoute: PrescriptionRoute,
+  PrivacyRoute: PrivacyRoute,
   SymptomsRoute: SymptomsRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,6 +1,11 @@
-import { PageShell } from "@/components/page-shell";
+import { PageShell } from "@/components/site/page-shell";
+import { createFileRoute } from '@tanstack/react-router';
 
-export function PrivacyPolicy() {
+export const Route = createFileRoute('/privacy')({
+  component: PrivacyPolicy,
+});
+
+function PrivacyPolicy() {
   return (
     <PageShell
       eyebrow="Legal"

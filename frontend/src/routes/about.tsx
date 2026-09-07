@@ -1,7 +1,12 @@
-import { PageShell } from "@/components/page-shell";
+import { PageShell } from "@/components/site/page-shell";
 import { HeartPulse, Shield, Activity, Users, Award, MapPin } from "lucide-react";
+import { createFileRoute } from '@tanstack/react-router';
 
-export function About() {
+export const Route = createFileRoute('/about')({
+  component: About,
+});
+
+function About() {
   return (
     <PageShell
       eyebrow="Our Mission"

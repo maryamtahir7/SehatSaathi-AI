@@ -37,7 +37,6 @@ export function Footer() {
             <li><Link to="/about" className="transition-colors hover:text-primary">About SehatSaathi</Link></li>
             <li><Link to="/terms" className="transition-colors hover:text-primary">{t("terms")}</Link></li>
             <li><Link to="/privacy" className="transition-colors hover:text-primary">{t("privacy")}</Link></li>
-            <li>Gulberg III, Lahore Faisalabad, Pakistan</li>
           </ul>
         </div>
 
@@ -46,7 +45,7 @@ export function Footer() {
           <ul className="mt-4 space-y-3 text-sm">
             <li className="flex items-center gap-2"><Phone className="size-4 text-destructive" /> Rescue 1122</li>
             <li className="flex items-center gap-2"><Mail className="size-4 text-muted-foreground" /> medistore.pk@gmail.com</li>
-            <li className="flex items-center gap-2"><MapPin className="size-4 text-muted-foreground" /> Gulberg III, Lahore</li>
+            <li className="flex items-center gap-2"><MapPin className="size-4 text-muted-foreground" /> Faisalabad, Pakistan</li>
           </ul>
         </div>
       </div>
