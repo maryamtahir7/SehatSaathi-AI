@@ -34,7 +34,7 @@ export function Footer() {
         <div>
           <h4 className="text-sm font-semibold">Company</h4>
           <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
-            <li>About SehatSaathi</li>
+            <li><Link to="/about" className="transition-colors hover:text-primary">About SehatSaathi</Link></li>
             <li><Link to="/terms" className="transition-colors hover:text-primary">{t("terms")}</Link></li>
             <li><Link to="/privacy" className="transition-colors hover:text-primary">{t("privacy")}</Link></li>
             <li>Gulberg III, Lahore Faisalabad, Pakistan</li>
