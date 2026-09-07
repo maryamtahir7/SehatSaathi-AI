@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { Camera, FileText, Loader2, Plus, RefreshCw, ShoppingCart } from "lucide-react";
+import { Camera, FileText, Loader2, Plus, RefreshCw, ShoppingCart, BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
 import { formatPKR, useApp } from "@/lib/app-context";
-import Tesseract from 'tesseract.js';
+import { createWorker, Worker } from 'tesseract.js';
 
 export const Route = createFileRoute("/prescription")({
   head: () => ({
@@ -33,7 +33,52 @@ function Prescription() {
   const [dragging, setDragging] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [ocrProgress, setOcrProgress] = useState<string>("");
+  const [workerReady, setWorkerReady] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const workerRef = useRef<Worker | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const initWorker = async () => {
+      try {
+        setOcrProgress("Initializing offline AI engine...");
+        const worker = await createWorker('eng', 1, {
+          logger: m => {
+            if (!active) return;
+            if (m.status === 'recognizing text') {
+              setOcrProgress(`Reading handwriting: ${Math.round(m.progress * 100)}%`);
+            } else {
+              // Usually downloading traineddata or initializing
+              const p = m.progress ? ` (${Math.round(m.progress * 100)}%)` : '';
+              setOcrProgress(`Loading AI: ${m.status}${p}`);
+            }
+          }
+        });
+        if (active) {
+          workerRef.current = worker;
+          setWorkerReady(true);
+          setOcrProgress("");
+        } else {
+          worker.terminate();
+        }
+      } catch (e) {
+        if (active) {
+          console.error(e);
+          setError("Failed to load the offline OCR engine. Please check your internet connection.");
+        }
+      }
+    };
+    
+    initWorker();
+    
+    return () => {
+      active = false;
+      if (workerRef.current) {
+        workerRef.current.terminate();
+      }
+    };
+  }, []);
 
   const handleFile = (f?: File) => {
     if (!f) return;
@@ -49,12 +94,15 @@ function Prescription() {
     setStatus("loading");
     setError(null);
 
+    if (!workerRef.current) {
+      setError("AI Engine is still loading. Please wait a moment.");
+      setStatus("idle");
+      return;
+    }
+
     try {
-      const { data: { text } } = await Tesseract.recognize(
-        file,
-        'eng',
-        { logger: m => console.log(m) }
-      );
+      setOcrProgress("Starting text recognition...");
+      const { data: { text } } = await workerRef.current.recognize(file);
 
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
       const meds: any[] = [];
@@ -160,7 +208,12 @@ function Prescription() {
                 <img src={preview} alt="Prescription upload" className="max-h-[22rem] w-full object-contain" />
                 {status === "loading" && (
                   <>
-                    <div className="absolute inset-0 bg-primary/10" />
+                    <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex flex-col items-center justify-center text-primary-foreground font-semibold">
+                       <Loader2 className="size-8 animate-spin mb-3 text-primary" />
+                       <div className="bg-background/80 text-foreground px-4 py-2 rounded-full shadow-lg text-sm">
+                         {ocrProgress || "Processing..."}
+                       </div>
+                    </div>
                     <div className="scan-line absolute top-0 left-0 w-full h-1 bg-primary/80 animate-[scan_2s_ease-in-out_infinite]" />
                   </>
                 )}
@@ -172,18 +225,21 @@ function Prescription() {
                 </div>
               )}
 
-              {status === "idle" && (
-                <Button className="w-full gap-2 rounded-full font-semibold" size="lg" onClick={submitAnalysis}>
-                  <FileText className="size-4" /> Extract Medicines
-                </Button>
-              )}
-
-              {status === "loading" && (
-                <div className="flex items-center justify-center gap-3 text-sm font-medium text-primary py-3">
-                  <Loader2 className="size-4 animate-spin" /> Reading handwriting...
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button variant="outline" className="rounded-full" onClick={() => handleFile()} disabled={status === "loading"}>
+                    <RefreshCw className="mr-2 size-4" /> Rescan
+                  </Button>
+                  <Button className="rounded-full" onClick={submitAnalysis} disabled={status === "loading" || !workerReady}>
+                    {status === "loading" ? (
+                      <><Loader2 className="mr-2 size-4 animate-spin" /> Processing...</>
+                    ) : !workerReady ? (
+                      <><Loader2 className="mr-2 size-4 animate-spin" /> {ocrProgress || "Loading Engine..."}</>
+                    ) : (
+                      <><BrainCircuit className="mr-2 size-4" /> Extract Medicines</>
+                    )}
+                  </Button>
                 </div>
-              )}
-
+              
               {status === "done" && (
                 <Button
                   variant="outline"
