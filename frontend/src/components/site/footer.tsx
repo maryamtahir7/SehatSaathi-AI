@@ -15,8 +15,7 @@ export function Footer() {
             <span className="font-display text-lg font-semibold">{t("brand")}</span>
           </div>
           <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-            Clinically-informed AI tools for scans, symptoms, nutrition and medicines — built for
-            families across Pakistan.
+            {t("footer_desc")}
           </p>
         </div>
 
@@ -32,9 +31,9 @@ export function Footer() {
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold">Company</h4>
+          <h4 className="text-sm font-semibold">{t("footer_company")}</h4>
           <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
-            <li><Link to="/about" className="transition-colors hover:text-primary">About SehatSaathi</Link></li>
+            <li><Link to="/about" className="transition-colors hover:text-primary">{t("footer_about")}</Link></li>
             <li><Link to="/terms" className="transition-colors hover:text-primary">{t("terms")}</Link></li>
             <li><Link to="/privacy" className="transition-colors hover:text-primary">{t("privacy")}</Link></li>
           </ul>
@@ -54,7 +53,7 @@ export function Footer() {
           © 2026 SehatSaathi AI. All rights reserved. {t("disclaimer")}
         </div>
         <div className="flex-1 text-center md:text-right font-medium text-foreground/80 md:ml-auto z-10 relative">
-          Developed by <a href="http://www.maryamtahir.tech" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Maryam Tahir</a>
+          {t("footer_developed_by")} <a href="http://www.maryamtahir.tech" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Maryam Tahir</a>
         </div>
       </div>
     </footer>

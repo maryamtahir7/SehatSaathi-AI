@@ -1,17 +1,19 @@
 import { PageShell } from "@/components/site/page-shell";
 import { HeartPulse, Shield, Activity, Users, Award, MapPin } from "lucide-react";
 import { createFileRoute } from '@tanstack/react-router';
+import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute('/about')({
   component: About,
 });
 
 function About() {
+  const { t } = useApp();
   return (
     <PageShell
-      eyebrow="Our Mission"
-      title="About SehatSaathi AI"
-      description="Revolutionizing healthcare in Pakistan through the power of Artificial Intelligence."
+      eyebrow={t("about_mission")}
+      title={t("about_title")}
+      description={t("about_desc")}
     >
       <div className="max-w-4xl mx-auto py-10 px-6 space-y-12">
         {/* Intro Section */}

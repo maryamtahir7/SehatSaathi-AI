@@ -65,7 +65,7 @@ export function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="rounded-full px-3 py-2 text-[14px] font-medium text-muted-foreground hover:text-foreground hover:bg-transparent h-auto gap-1">
-                  {lang === "en" ? "AI Services" : "خدمات"}
+                  {t("nav_services")}
                   <ChevronDown className="size-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
