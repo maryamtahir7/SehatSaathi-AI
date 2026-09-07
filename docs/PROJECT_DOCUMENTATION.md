@@ -1,4 +1,4 @@
-﻿# SehatSaathi AI — Complete Project Documentation
+# SehatSaathi AI — Complete Project Documentation
 
 **Version:** 1.0.0 | **Date:** September 2026 | **Author:** Maryam Tahir
 **Repository:** https://github.com/maryamtahir7/SehatSaathi-AI
@@ -116,185 +116,202 @@ FastAPI Python Backend (py-api)
 
 ### 4.1 High-Level Architecture
 
+![Figure 2: Three-Tier System Architecture Overview](./images/diagram_4_1_architecture.png)
+
+```mermaid
+flowchart TD
+    subgraph TIER1["TIER 1 — CLIENT & EDGE LAYER (Vercel Edge Network)"]
+        direction TB
+        CDN["🌐 Vercel Edge CDN<br/>• Anycast Low-Latency Edge Routing<br/>• Global SSL Termination & DDoS Protection"]
+        NITRO["⚡ TanStack Start SSR Framework<br/>• Node.js 24 runtime via Nitro Engine<br/>• Server-Side Rendering & Hydration<br/>• Type-Safe Route Loaders & Actions"]
+        CLIENT["💻 React 19 Client Application<br/>• Tailwind CSS 3.4 & Framer Motion 60 FPS<br/>• Lucide Icons & Responsive UX<br/>• Client State & LocalStorage Cart"]
+        ROUTES["📁 Application Routes & Views<br/>• / (Home) &nbsp; • /diagnostics &nbsp; • /symptoms<br/>• /chat &nbsp; • /prescription &nbsp; • /pharmacy<br/>• /hospitals &nbsp; • /diet &nbsp; • /admin"]
+        
+        CDN --> NITRO --> CLIENT --> ROUTES
+    end
+
+    TIER1 -- "Reverse Proxy: /api/* to :8000" --> TIER2
+
+    subgraph TIER2["TIER 2 — APPLICATION SERVER (FastAPI ASGI)"]
+        direction TB
+        FASTAPI["🚀 FastAPI Core (index.py)<br/>• Uvicorn ASGI Server<br/>• Pydantic v2 Schema Validation<br/>• CORS & Error Recovery Middleware"]
+        
+        subgraph ROUTERS["6 Route Controllers (py-api/routes/)"]
+            R_CHAT["chat_routes.py<br/>POST /api/assistant/chat"]
+            R_IMG["image_routes.py<br/>POST /analyze-medical-image"]
+            R_DIS["disease_routes.py<br/>POST /predict-disease"]
+            R_SKIN["skin_routes.py<br/>POST /analyze-skin-disease"]
+            R_SHOP["shop_routes.py<br/>GET/POST /api/pharmacy"]
+            R_OCR["ocr_routes.py<br/>POST /api/ocr/fallback"]
+        end
+
+        subgraph SERVICES["3 Core Business Services (py-api/services/)"]
+            S_IMG["image_service.py<br/>• PIL Modality Detection<br/>• Normalization & Score Calc"]
+            S_ML["ml_service.py<br/>• ONNX Runtime Sessions<br/>• 132-dim Vectorization"]
+            S_SKIN["skin_service.py<br/>• Lesion Preprocessing<br/>• Top-K Scoring"]
+        end
+
+        FASTAPI --> ROUTERS
+        ROUTERS --> SERVICES
+    end
+
+    TIER2 -- "Cloud BaaS & Model Inference" --> TIER3
+
+    subgraph TIER3["TIER 3 — EXTERNAL SERVICES & PERSISTENCE"]
+        direction TB
+        GROQ["🤖 Groq Cloud AI<br/>• LLaMA 3.3-70b-versatile<br/>• ~500 tokens/sec Inference<br/>• Bilingual EN/UR Medical Reasoning"]
+        APPWRITE["🔐 Appwrite Cloud BaaS<br/>• User Authentication & JWTs<br/>• Orders & Reviews NoSQL DB<br/>• Role-Based Access Control"]
+        
+        subgraph ONNX_MODELS["ONNX Machine Learning Models"]
+            M_BRAIN["braintumor.onnx<br/>(168x168 Grayscale CNN - 4 Classes)"]
+            M_LUNG["lung.onnx<br/>(224x224 RGB CNN - Binary Pneumonia)"]
+            M_SKIN["skin.onnx<br/>(224x224 RGB CNN - Lesion Classifier)"]
+            M_SVC["svc.onnx<br/>(132-dim Support Vector - 41 Diseases)"]
+        end
+
+        subgraph DATASETS["In-Memory CSV Knowledge Bases"]
+            CSV_MED["Medicine_Details.csv<br/>(15,000+ items, prices, salt)"]
+            CSV_DIS["Disease Knowledge Base<br/>(description, precautions, diets)"]
+        end
+    end
+
+    SERVICES --> GROQ
+    SERVICES --> APPWRITE
+    SERVICES --> ONNX_MODELS
+    SERVICES --> DATASETS
 ```
-                    +-------------------------------+
-                    |     VERCEL CDN / EDGE         |
-                    +-------------+-----------------+
-                                  |
-                    +-------------v-----------------+
-                    |   TanStack Start (Nitro)       |
-                    |  React 19 SSR + Client Bundle  |
-                    |                               |
-                    |  Routes:                      |
-                    |  /            Landing page    |
-                    |  /diagnostics Image AI        |
-                    |  /symptoms    Symptom checker |
-                    |  /chat        AI assistant    |
-                    |  /prescription OCR scanner    |
-                    |  /pharmacy    Medicine store  |
-                    |  /hospitals   Hospital map    |
-                    |  /diet        Diet planner    |
-                    |  /admin       Admin dashboard |
-                    +-------------+-----------------+
-                                  |  Proxy: /api/* to :8000
-                    +-------------v-----------------+
-                    |    FastAPI Python (py-api)     |
-                    |  index.py (uvicorn ASGI)       |
-                    |                               |
-                    |  Routers:                     |
-                    |  chat_routes.py               |
-                    |  image_routes.py              |
-                    |  disease_routes.py            |
-                    |  skin_routes.py               |
-                    |  shop_routes.py               |
-                    |  ocr_routes.py                |
-                    +--+----------+----------+------+
-                       |          |           |
-           +-----------+    +-----+----+  +---+----------+
-           | Groq API  |    | Appwrite |  | ONNX Models  |
-           | LLaMA 3.3 |    |  Cloud   |  |braintumor    |
-           | 70B params|    | Auth+DB  |  |lung, skin    |
-           +-----------+    +----------+  |svc.onnx      |
-                                          +--------------+
-```
+
+---
 
 ### 4.2 Data Flow: Medical Image Analysis
 
+![Figure 3: Medical Image Analysis & ONNX Pipeline Data Flow](./images/diagram_4_2_medical_image.png)
+
+```mermaid
+flowchart TD
+    START([👤 User Uploads Scan]) --> UPLOAD["📤 POST /analyze-medical-image<br/>(multipart/form-data)"]
+    UPLOAD --> API["⚡ FastAPI: image_routes.py<br/>Calls image_service.analyze_medical_image()"]
+    API --> PIL["🖼️ PIL Image.open()<br/>Extracts RGB & Grayscale ('L') Arrays"]
+    
+    PIL --> MODALITY{"🔍 AUTO-MODALITY DETECTION<br/>Calculate mean_pixel_value"}
+    
+    MODALITY -- "mean_pixel < 95<br/>(Dark Cranial Scan)" --> MRI_PATH["🧠 MRI PATH (Brain Tumor)"]
+    MODALITY -- "mean_pixel >= 95<br/>(Bright Thoracic Scan)" --> XRAY_PATH["🫁 X-RAY PATH (Chest Pneumonia)"]
+    
+    subgraph MRI_PROC["Brain MRI Processing Pipeline"]
+        MRI_PATH --> M_RESIZE["Resize to 168 x 168 px"]
+        M_RESIZE --> M_GRAY["Convert to Grayscale ('L')"]
+        M_GRAY --> M_NORM["Normalize (/ 255.0) -> Float32"]
+        M_NORM --> M_SHAPE["Reshape: [1, 168, 168, 1]"]
+        M_SHAPE --> M_MODEL["ONNX Runtime: braintumor.onnx"]
+        M_MODEL --> M_SOFTMAX["Softmax Activation<br/>4 Classes: Glioma / Meningioma / Pituitary / None"]
+    end
+    
+    subgraph XRAY_PROC["Chest X-Ray Processing Pipeline"]
+        XRAY_PATH --> X_RESIZE["Resize to 224 x 224 px"]
+        X_RESIZE --> X_RGB["Retain 3-Channel RGB"]
+        X_RGB --> X_NORM["Normalize (/ 255.0) -> Float32"]
+        X_NORM --> X_SHAPE["Reshape: [1, 224, 224, 3]"]
+        X_SHAPE --> X_MODEL["ONNX Runtime: lung.onnx"]
+        X_MODEL --> X_SIGMOID["Sigmoid Activation<br/>Binary: Pneumonia vs Normal"]
+    end
+    
+    M_SOFTMAX --> SCORE["📊 Metric Extraction<br/>Finding + Confidence % + Abnormality Score"]
+    X_SIGMOID --> SCORE
+    
+    SCORE --> CSV_LOOKUP["📋 get_recommendations(finding)<br/>Query Local Clinical Precautions CSV"]
+    CSV_LOOKUP --> JSON_RESP["📦 JSON Clinical Response<br/>{ modality, finding, confidence, abnormality_score, recommendations[] }"]
+    JSON_RESP --> REPORT["📑 Frontend React UI<br/>Renders Interactive Clinical Report Card & Visual Risk Gauge"]
 ```
-User uploads image
-         |
-         v
-POST /analyze-medical-image (multipart)
-         |
-         v
-FastAPI image_routes.py
-         |
-         v
-PIL: Image.open() + convert("RGB") + convert("L")
-         |
-         v
-Auto-Modality Detection:
-    mean_pixel < 95  --> "mri"
-    mean_pixel >= 95 --> "xray"
-         |
-    +----+----+
-    |         |
-    v         v
-[X-Ray]    [MRI]
-lung.onnx  braintumor.onnx
-224x224x3  168x168x1
-    |         |
-    v         v
-ONNX Runtime InferenceSession.run()
-    |         |
-    v         v
-[Binary]  [Softmax]
-Sigmoid   4-class probs
-    |         |
-    +----+----+
-         v
-Finding + Confidence + Abnormality Score
-         |
-         v
-get_recommendations() --> CSV lookup
-         |
-         v
-JSON Response --> Frontend clinical report
-```
+
+---
 
 ### 4.3 Data Flow: Symptom Prediction
 
-```
-User selects symptoms from 132 available
-         |
-         v
-POST /predict-disease
-{ "symptoms": ["headache", "fever", "nausea"] }
-         |
-         v
-One-hot encode into 132-dim vector
-[0, 0, 1, 0, 1, ...] (all zeros except selected)
-         |
-         v
-svc.onnx InferenceSession.run()
-         |
-         v
-Predicted class index --> diseases_list dict
-         |
-         v
-get_recommendations(disease_name)
-  --> description.csv
-  --> precautions_df.csv
-  --> medications.csv
-  --> diets.csv
-  --> workout_df.csv
-         |
-         v
-Full clinical recommendation JSON
+```mermaid
+flowchart TD
+    USER([👤 User Selects Symptoms]) --> SELECT["Select symptoms from 132 available checkboxes/chips"]
+    SELECT --> REQ["📤 POST /predict-disease<br/>{ 'symptoms': ['headache', 'fever', 'nausea'] }"]
+    REQ --> ENCODE["⚙️ One-Hot Encoding Engine<br/>Vectorize into 132-dim array [0, 0, 1, 0, 1, ...]"]
+    ENCODE --> MODEL["🧠 ONNX Runtime: svc.onnx<br/>InferenceSession.run()"]
+    MODEL --> DECODE["Predicted Class Index -> diseases_list Dictionary Lookup"]
+    DECODE --> RECOM["📋 get_recommendations(disease_name)<br/>• description.csv<br/>• precautions_df.csv<br/>• medications.csv<br/>• diets.csv<br/>• workout_df.csv"]
+    RECOM --> RESP["📦 Comprehensive Clinical Recommendation JSON"]
+    RESP --> UI["🖥️ React 19 UI renders Disease Card, Precautions, Diet & Medications"]
 ```
 
-### 4.4 Data Flow: AI Chat
+---
 
-```
-User types message
-         |
-         v
-POST /api/assistant/chat
-{ message, language, history[-10:] }
-         |
-         v
-Build messages array:
-  [system_prompt_en/ur, ...history, user_message]
-         |
-         v
-Groq SDK: client.chat.completions.create()
-Model: llama-3.3-70b-versatile
-         |
-         v
-AI Response text (markdown)
-         |
-         v
-Medicine lookup: scan message for keywords
---> Medicine_Details.csv --> top 3 matches
-         |
-         v
-Return: { response, model, language, products[] }
+### 4.4 Data Flow: AI Chat & Pharmacy Linkage
+
+![Figure 4: AI Chat & Pharmacy Recommendation Data Flow](./images/diagram_4_3_ai_chat.png)
+
+```mermaid
+flowchart TD
+    USER([👤 Patient Inputs Health Query]) --> CLIENT_REQ["💬 POST /api/assistant/chat<br/>Payload: { message, language: 'en'|'ur', history: [...] }"]
+    
+    CLIENT_REQ --> CONTEXT["⚙️ FastAPI Backend Context Engine"]
+    
+    subgraph PROMPT_ASSEMBLY["Prompt Engineering & Assembly"]
+        CONTEXT --> LANG_SELECT{"Language Selector"}
+        LANG_SELECT -- "'ur'" --> PROMPT_UR["Select system_prompt_UR<br/>(Empathetic Urdu Medical Advisor)"]
+        LANG_SELECT -- "'en'" --> PROMPT_EN["Select system_prompt_EN<br/>(English Clinical Empathy & Safety)"]
+        
+        PROMPT_UR --> SLICE["Sliding Window History Slicing<br/>history[-10:] to bound tokens"]
+        PROMPT_EN --> SLICE
+        
+        SLICE --> ARRAY["Construct Message Array:<br/>[ system_prompt, ...history[-10:], user_message ]"]
+    end
+    
+    ARRAY --> GROQ["🚀 Groq Python SDK: client.chat.completions.create()<br/>• Model: llama-3.3-70b-versatile<br/>• Speed: ~500 tokens/sec on LPUs<br/>• Temperature: 0.3 calibrated clinical accuracy"]
+    
+    GROQ --> AI_TEXT["📝 AI Response Text (Structured Markdown)"]
+    
+    subgraph ECOMMERCE["Medicine Extraction & E-Store Linkage"]
+        AI_TEXT --> SCAN["🔍 Medicine Keyword Scanner<br/>Tokenize text for OTC drugs (Paracetamol, Panadol, ORS...)"]
+        SCAN --> CSV_MATCH["📦 Query Medicine_Details.csv (15,000+ Items)<br/>Match Salt, Dosage, Brand & Pricing"]
+        CSV_MATCH --> TOP3["💊 Select Top 3 Ranked Verified Products"]
+    end
+    
+    TOP3 --> RESP_PAYLOAD["📦 Structured JSON Dispatch<br/>{ response: markdown, model: 'llama-3.3-70b', language, products: [...] }"]
+    RESP_PAYLOAD --> CHAT_UI["🖥️ React 19 Client UI<br/>• Renders Streaming Chat Bubbles with Clinical Disclaimers<br/>• Inlines Product Cards with 1-Click 'Add to Cart' Buttons"]
 ```
 
-### 4.5 Data Flow: Prescription OCR
+---
 
-```
-User uploads prescription photo
-         |
-         v
-Tesseract.js Worker (WASM) initialized in browser
-createWorker('eng') -- loaded once on page mount
-         |
-         v
-Image compressed: max 1200px, JPEG 0.8
-         |
-         v
-worker.recognize(base64Image)
-         |
-    +----+----+
-    |         |
- Success    Fail (WASM OOM)
-    |         |
-    v         v
-text      OCR.space API fallback
-          ParsedResults[0].ParsedText
-    |         |
-    +----+----+
-         |
-         v
-Heuristic parser:
-- Filter by medicine keywords (tab, cap, mg, od, bd)
-- Filter by UPPERCASE word patterns
-- Assign medicine type
-         |
-         v
-medicines_identified[] in table
-Add to Cart button
+### 4.5 Data Flow: Prescription OCR Scanner
+
+![Figure 5: Prescription OCR Scanner Data Flow](./images/diagram_4_4_prescription_ocr.png)
+
+```mermaid
+flowchart TD
+    USER([👤 Patient Uploads Prescription]) --> COMPRESS["📐 Client-side Image Optimization<br/>Canvas downscales image: max 1200px width, JPEG 0.8 quality<br/>(Prevents WASM Out-of-Memory crashes)"]
+    
+    COMPRESS --> WASM_INIT["⚡ Tesseract.js Worker Initialized<br/>createWorker('eng') in dedicated Web Worker thread<br/>(Zero server latency, 100% patient privacy)"]
+    
+    WASM_INIT --> RECOGNIZE["🔎 worker.recognize(base64_image)"]
+    
+    RECOGNIZE --> BRANCH{"Extraction Result"}
+    
+    BRANCH -- "SUCCESS" --> RAW_TEXT_LOCAL["📄 Raw Extracted Text (Local WASM)<br/>Execution time: ~1.5 seconds on-device"]
+    
+    BRANCH -- "FAILURE<br/>(WASM OOM / Low RAM)" --> FALLBACK["☁️ Cloud Fallback Triggered<br/>POST /api/ocr/fallback -> OCR.space Cloud API<br/>Recovers text through cloud serverless proxy"]
+    
+    FALLBACK --> RAW_TEXT_CLOUD["📄 Raw Extracted Text (Cloud Fallback)"]
+    
+    RAW_TEXT_LOCAL --> PARSER["🧠 Client-Side Heuristic Regex Parser"]
+    RAW_TEXT_CLOUD --> PARSER
+    
+    subgraph HEURISTIC_PARSER["Heuristic Parsing Pipeline"]
+        PARSER --> STEP1["1. Token Filtering<br/>Match dosage keywords: tab, cap, syp, inj, mg, ml, od, bd, tds"]
+        STEP1 --> STEP2["2. Pattern Recognition<br/>Regex pattern matching for UPPERCASE medicine brands"]
+        STEP2 --> STEP3["3. Form Classification<br/>Categorize entity: Tablet / Capsule / Syrup / Injection / Topical"]
+    end
+    
+    STEP3 --> MEDICINE_ARRAY["📋 medicines_identified[] Data Model"]
+    
+    MEDICINE_ARRAY --> TABLE_UI["📊 Interactive Review Table UI<br/>Patient verifies medicines, quantities & dosages"]
+    TABLE_UI --> ADD_CART["🛒 1-Click 'Add All to Cart'<br/>Direct integration with SehatSaathi Pharmacy store & COD checkout"]
 ```
 
 ---
