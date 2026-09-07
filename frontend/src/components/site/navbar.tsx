@@ -15,6 +15,7 @@ const links: { to: string; key: DictKey }[] = [
   { to: "/diet", key: "nav_diet" },
   { to: "/pharmacy", key: "nav_pharmacy" },
   { to: "/prescription", key: "nav_scan" },
+  { to: "/hospitals", key: "nav_hospitals" },
   { to: "/chat", key: "nav_chat" },
 ];
 

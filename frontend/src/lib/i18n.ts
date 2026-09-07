@@ -9,6 +9,7 @@ export const dict = {
   nav_pharmacy: { en: "Pharmacy", ur: "فارمیسی" },
   nav_scan: { en: "Prescription Scan", ur: "نسخہ اسکین" },
   nav_chat: { en: "Chat", ur: "چیٹ" },
+  nav_hospitals: { en: "Hospitals", ur: "ہسپتال" },
   sign_in: { en: "Sign In", ur: "سائن ان" },
   sign_up: { en: "Sign Up", ur: "اکاؤنٹ بنائیں" },
   hero_title: { en: "Your Personal AI Healthcare Companion", ur: "آپ کا ذاتی AI ہیلتھ کیئر ساتھی" },
