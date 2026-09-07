@@ -177,8 +177,18 @@ function Prescription() {
         const isUppercase = line.toUpperCase() === line && line.split(' ').length >= 2 && !line.includes(':');
         
         if (isMedicineLine || isUppercase) {
+           let type = "Medicine";
+           const lower = line.toLowerCase();
+           if (lower.match(/syp|syrup|ogp|9gp|09p|o9p/i)) type = "Syrup";
+           else if (lower.includes("tab")) type = "Tablet";
+           else if (lower.includes("cap")) type = "Capsule";
+           else if (lower.match(/inj|iv|im/i)) type = "Injection";
+           else if (lower.match(/drop|drp/i)) type = "Drops";
+           else if (lower.match(/oint|cream|gel|lotion/i)) type = "Topical";
+           
            meds.push({
              name: line.substring(0, 60).trim(), // Keep the whole line so dosage/instructions are visible
+             generic: type,
              dosage: 'As prescribed',
              frequency: 'See prescription',
              duration: '-',
@@ -193,6 +203,7 @@ function Prescription() {
            if (line.length > 5 && line.split(' ').length <= 6 && !line.match(/date|name|age|dr|ph|rx|clinical|description|advice|weight|gender|hospital|clinic/i)) {
              meds.push({
                name: line.substring(0, 60).trim(),
+               generic: "Prescription",
                dosage: 'As prescribed',
                frequency: 'See prescription',
                duration: '-',
