@@ -165,13 +165,23 @@ function Prescription() {
       
       // Basic heuristic for medical lines
       for (const line of lines) {
-        if (line.toLowerCase().includes('tab') || line.toLowerCase().includes('syp') || line.toLowerCase().includes('cap') || line.match(/\d+mg/i) || line.toLowerCase().includes('inj')) {
-           const parts = line.split(' ');
+        // Skip common headers and patient info
+        if (line.length < 4 || line.match(/date|name|age|dr|ph|rx|clinical|description|advice|weight|gender|hospital|clinic|patient/i)) {
+            continue;
+        }
+        
+        // Match common medicine forms, units, or dosage frequencies
+        const isMedicineLine = line.match(/(tab|cap|syp|inj|susp|drop|drp|ointment|cream|gel|lotion|mg|ml|mcg|gm|od|bd|tds|sos|q6h|q8h|\d+x\d+)/i);
+        
+        // Also match lines that are mostly UPPERCASE (often how doctors write medicine names)
+        const isUppercase = line.toUpperCase() === line && line.split(' ').length >= 2 && !line.includes(':');
+        
+        if (isMedicineLine || isUppercase) {
            meds.push({
-             name: parts[0] + (parts[1] ? ' ' + parts[1] : ''),
-             dosage: parts.slice(2).join(' ') || 'As directed',
-             frequency: 'Daily',
-             duration: '5 days',
+             name: line.substring(0, 60).trim(), // Keep the whole line so dosage/instructions are visible
+             dosage: 'As prescribed',
+             frequency: 'See prescription',
+             duration: '-',
              price: Math.floor(Math.random() * 500) + 150
            });
         }
@@ -179,13 +189,13 @@ function Prescription() {
       
       // Fallback if no medicine keywords found
       if (meds.length === 0) {
-        for (const line of lines.slice(0, 5)) {
-           if (line.split(' ').length <= 4 && !line.match(/date|name|age|dr|ph|rx/i)) {
+        for (const line of lines) {
+           if (line.length > 5 && line.split(' ').length <= 6 && !line.match(/date|name|age|dr|ph|rx|clinical|description|advice|weight|gender|hospital|clinic/i)) {
              meds.push({
-               name: line.substring(0, 30), // Truncate just in case
-               dosage: 'As directed',
-               frequency: 'Daily',
-               duration: '5 days',
+               name: line.substring(0, 60).trim(),
+               dosage: 'As prescribed',
+               frequency: 'See prescription',
+               duration: '-',
                price: Math.floor(Math.random() * 500) + 150
              });
            }
