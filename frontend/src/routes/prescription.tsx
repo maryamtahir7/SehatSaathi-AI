@@ -101,17 +101,64 @@ function Prescription() {
     }
 
     try {
-      setOcrProgress("Starting text recognition...");
+      setOcrProgress("Compressing image...");
       
-      // Convert File to base64 string to avoid cross-origin / File serialization issues in Web Workers
+      // Compress the image to prevent WebAssembly Out-Of-Memory "Error attempting to read image"
       const base64Image = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const MAX_WIDTH = 1200;
+            
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          };
+          img.onerror = () => reject(new Error("Failed to load image for compression"));
+          img.src = e.target?.result as string;
+        };
         reader.onerror = () => reject(new Error("Failed to read file"));
         reader.readAsDataURL(file);
       });
       
-      const { data: { text } } = await workerRef.current.recognize(base64Image);
+      let text = "";
+      try {
+        setOcrProgress("Starting local text recognition...");
+        const res = await workerRef.current.recognize(base64Image);
+        text = res.data.text;
+      } catch (tessErr) {
+        console.warn("Tesseract failed (likely WASM issue), falling back to free cloud OCR...", tessErr);
+        setOcrProgress("Local AI failed. Using free cloud fallback...");
+        
+        const fd = new FormData();
+        fd.append('base64Image', base64Image);
+        fd.append('apikey', 'helloworld');
+        fd.append('language', 'eng');
+        fd.append('scale', 'true');
+        fd.append('isOverlayRequired', 'false');
+        
+        const response = await fetch('https://api.ocr.space/parse/image', {
+          method: 'POST',
+          body: fd
+        });
+        const data = await response.json();
+        
+        if (data.IsErroredOnProcessing || !data.ParsedResults || data.ParsedResults.length === 0) {
+          throw new Error(data.ErrorMessage?.[0] || "Fallback OCR failed to read text.");
+        }
+        text = data.ParsedResults[0].ParsedText;
+      }
 
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
       const meds: any[] = [];
