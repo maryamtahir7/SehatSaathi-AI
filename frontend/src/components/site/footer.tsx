@@ -35,10 +35,9 @@ export function Footer() {
           <h4 className="text-sm font-semibold">Company</h4>
           <ul className="mt-4 space-y-2.5 text-sm text-muted-foreground">
             <li>About SehatSaathi</li>
-            <li>{t("terms")}</li>
-            <li>{t("privacy")}</li>
+            <li><Link to="/terms" className="transition-colors hover:text-primary">{t("terms")}</Link></li>
+            <li><Link to="/privacy" className="transition-colors hover:text-primary">{t("privacy")}</Link></li>
             <li>Partner with us</li>
-            <li>Careers</li>
           </ul>
         </div>
 
@@ -46,14 +45,18 @@ export function Footer() {
           <h4 className="text-sm font-semibold text-destructive">{t("emergency")}</h4>
           <ul className="mt-4 space-y-3 text-sm">
             <li className="flex items-center gap-2"><Phone className="size-4 text-destructive" /> Rescue 1122</li>
-            <li className="flex items-center gap-2"><Phone className="size-4 text-destructive" /> +92 300 000 0000</li>
-            <li className="flex items-center gap-2"><Mail className="size-4 text-muted-foreground" /> care@sehatsaathi.ai</li>
+            <li className="flex items-center gap-2"><Mail className="size-4 text-muted-foreground" /> medistore.pk@gmail.com</li>
             <li className="flex items-center gap-2"><MapPin className="size-4 text-muted-foreground" /> Gulberg III, Lahore</li>
           </ul>
         </div>
       </div>
-      <div className="border-t border-border/60 px-4 py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} SehatSaathi AI. All rights reserved. {t("disclaimer")}
+      <div className="border-t border-border/60 px-4 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+        <div>
+          © {new Date().getFullYear()} SehatSaathi AI. All rights reserved. {t("disclaimer")}
+        </div>
+        <div className="font-medium text-foreground/80">
+          Developed by <a href="http://www.maryamtahir.tech" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Maryam Tahir</a>
+        </div>
       </div>
     </footer>
   );
