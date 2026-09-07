@@ -1,5 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell
+} from "recharts";
 import { motion } from "motion/react";
 import {
   LayoutDashboard, Package, ShoppingBag, Users, LogIn,
@@ -12,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useApp } from "@/lib/app-context";
 import { productService, orderService, databases, DB, COL, ID, Query } from "@/lib/appwrite";
 import { formatPKR } from "@/lib/app-context";
@@ -22,7 +26,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 type Product = { $id: string; name: string; brand?: string; price: number; category?: string; description?: string; image_url?: string; imageUrl?: string; emoji?: string };
-type Order   = { $id: string; $createdAt: string; userId?: string; items?: string; total?: number; status?: string };
+type Order   = { $id: string; $createdAt: string; userId?: string; items?: string; total?: number; status?: string; name?: string; phone?: string; address?: string; city?: string; postalCode?: string; paymentMethod?: string };
 type User    = { $id: string; name?: string; email?: string; $createdAt?: string };
 type Category = { $id: string; name: string; imageUrl?: string; $createdAt?: string };
 
@@ -57,6 +61,7 @@ function AdminDashboard() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading]     = useState(true);
   const [tab, setTab]             = useState("dashboard");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // Product form
   const [pName, setPName]         = useState("");
@@ -72,6 +77,7 @@ function AdminDashboard() {
   const [cName, setCName]         = useState("");
   const [cImage, setCImage]       = useState("");
   const [cSaving, setCSaving]     = useState(false);
+  const [cEditId, setCEditId]     = useState<string | null>(null);
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
@@ -79,6 +85,17 @@ function AdminDashboard() {
       setOrders(prev => prev.map(o => o.$id === orderId ? { ...o, status } : o));
     } catch (e) {
       console.error("Failed to update status", e);
+    }
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    if (!confirm("Are you sure you want to delete this order? This action cannot be undone.")) return;
+    try {
+      await databases.deleteDocument(DB, COL.orders, orderId);
+      setOrders(prev => prev.filter(o => o.$id !== orderId));
+      if (selectedOrder?.$id === orderId) setSelectedOrder(null);
+    } catch (e) {
+      console.error("Failed to delete order", e);
     }
   };
 
@@ -128,13 +145,19 @@ function AdminDashboard() {
     setProducts(p => p.filter(x => x.$id !== id));
   };
 
+  const resetCategoryForm = () => { setCName(""); setCImage(""); setCEditId(null); };
+
   const saveCategory = async () => {
     if (!cName) return;
     setCSaving(true);
     try {
-      await databases.createDocument(DB, COL.categories, ID.unique(), { name: cName, imageUrl: cImage });
+      if (cEditId) {
+        await databases.updateDocument(DB, COL.categories, cEditId, { name: cName, imageUrl: cImage });
+      } else {
+        await databases.createDocument(DB, COL.categories, ID.unique(), { name: cName, imageUrl: cImage });
+      }
       await loadData();
-      setCName(""); setCImage("");
+      resetCategoryForm();
     } catch (e) { console.error(e); }
     finally { setCSaving(false); }
   };
@@ -143,6 +166,12 @@ function AdminDashboard() {
     if (!confirm("Delete this category?")) return;
     await databases.deleteDocument(DB, COL.categories, id);
     setCategories(c => c.filter(x => x.$id !== id));
+  };
+
+  const startCategoryEdit = (c: Category) => {
+    setCEditId(c.$id);
+    setCName(c.name);
+    setCImage(c.imageUrl || "");
   };
 
   const startEdit = (p: Product) => {
@@ -157,6 +186,27 @@ function AdminDashboard() {
     { label: "Categories", value: categories.length, icon: Tag, color: "text-purple-500" },
     { label: "Revenue (est.)", value: formatPKR(orders.reduce((s, o) => s + (o.total || 0), 0)), icon: Tag, color: "text-amber-500" },
   ];
+
+  const ordersByDate = useMemo(() => {
+    const map = new Map<string, number>();
+    [...orders].reverse().forEach(o => {
+      if(!o.$createdAt) return;
+      const date = new Date(o.$createdAt).toLocaleDateString("en-PK", { month: "short", day: "numeric" });
+      map.set(date, (map.get(date) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([date, count]) => ({ date, count })).slice(-14);
+  }, [orders]);
+
+  const productsByCategory = useMemo(() => {
+    const map = new Map<string, number>();
+    products.forEach(p => {
+      const cat = p.category || "General";
+      map.set(cat, (map.get(cat) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([name, value]) => ({ name, value }));
+  }, [products]);
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a855f7', '#ef4444'];
 
   return (
     <div className="min-h-screen bg-background">
@@ -189,21 +239,66 @@ function AdminDashboard() {
           </TabsList>
 
           {/* DASHBOARD */}
-          <TabsContent value="dashboard">
+          <TabsContent value="dashboard" className="space-y-6">
             {loading ? (
               <div className="flex justify-center py-20"><Loader2 className="size-8 animate-spin text-primary" /></div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {stats.map((s, i) => (
-                  <motion.div key={s.label} initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay: i*0.07 }}>
-                    <Card className="rounded-3xl border-border/60 p-6 shadow-soft">
-                      <s.icon className={`size-7 mb-3 ${s.color}`} />
-                      <p className="text-2xl font-bold">{s.value}</p>
-                      <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
+              <>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {stats.map((s, i) => (
+                    <motion.div key={s.label} initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay: i*0.07 }}>
+                      <Card className="rounded-3xl border-border/60 p-6 shadow-soft">
+                        <s.icon className={`size-7 mb-3 ${s.color}`} />
+                        <p className="text-2xl font-bold">{s.value}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <Card className="rounded-3xl border-border/60 p-6 shadow-soft">
+                    <h3 className="font-semibold mb-6">Orders Over Time (Last 14 Days)</h3>
+                    <div className="h-[300px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={ordersByDate} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                          <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                          <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} />
+                          <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                          <Line type="monotone" dataKey="count" stroke="#0ea5e9" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </Card>
+
+                  <Card className="rounded-3xl border-border/60 p-6 shadow-soft">
+                    <h3 className="font-semibold mb-6">Products by Category</h3>
+                    <div className="h-[300px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={productsByCategory}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={100}
+                            paddingAngle={5}
+                            dataKey="value"
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            labelLine={false}
+                          >
+                            {productsByCategory.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </Card>
+                </div>
+              </>
             )}
           </TabsContent>
 
@@ -274,14 +369,15 @@ function AdminDashboard() {
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Add Category Form */}
               <Card className="rounded-3xl border-border/60 p-6 shadow-soft h-fit">
-                <h2 className="text-lg font-semibold mb-4">Add Category</h2>
+                <h2 className="text-lg font-semibold mb-4">{cEditId ? "Edit Category" : "Add Category"}</h2>
                 <div className="space-y-3">
                   <div><Label>Category Name *</Label><Input value={cName} onChange={e=>setCName(e.target.value)} placeholder="Baby Care" className="mt-1 rounded-xl" /></div>
                   <div><Label>Image URL</Label><Input value={cImage} onChange={e=>setCImage(e.target.value)} placeholder="https://..." className="mt-1 rounded-xl" /></div>
-                  <div className="pt-2">
-                    <Button className="w-full rounded-full" onClick={saveCategory} disabled={cSaving}>
-                      {cSaving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4 mr-1" />} Add Category
+                  <div className="flex gap-2 pt-2">
+                    <Button className="flex-1 rounded-full" onClick={saveCategory} disabled={cSaving}>
+                      {cSaving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4 mr-1" />} {cEditId ? "Update" : "Add"}
                     </Button>
+                    {cEditId && <Button variant="outline" className="rounded-full" onClick={resetCategoryForm}>Cancel</Button>}
                   </div>
                 </div>
               </Card>
@@ -304,9 +400,14 @@ function AdminDashboard() {
                           <p className="font-semibold truncate">{c.name}</p>
                           {c.$createdAt && <p className="text-xs text-muted-foreground">{new Date(c.$createdAt).toLocaleDateString()}</p>}
                         </div>
-                        <Button variant="ghost" size="icon" className="size-8 rounded-full text-destructive shrink-0" onClick={() => deleteCategory(c.$id)}>
-                          <Trash2 className="size-3.5" />
-                        </Button>
+                        <div className="flex gap-1 shrink-0">
+                          <Button variant="ghost" size="icon" className="size-8 rounded-full" onClick={() => startCategoryEdit(c)}>
+                            <Edit2 className="size-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="size-8 rounded-full text-destructive" onClick={() => deleteCategory(c.$id)}>
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
                       </Card>
                     ))}
                   </div>
@@ -374,12 +475,61 @@ function AdminDashboard() {
                             </SelectContent>
                           </Select>
                         </div>
+                        <div className="flex gap-2 mt-2">
+                          <Button variant="outline" size="sm" className="flex-1 rounded-xl h-8 text-xs" onClick={() => setSelectedOrder(o)}>View Details</Button>
+                          <Button variant="ghost" size="icon" className="size-8 rounded-xl text-destructive" onClick={() => deleteOrder(o.$id)}><Trash2 className="size-3.5" /></Button>
+                        </div>
                       </div>
                     </Card>
                   );
                 })}
               </div>
             )}
+            
+            {/* Order Details Modal */}
+            <Dialog open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
+              <DialogContent className="sm:max-w-2xl rounded-3xl">
+                <DialogHeader>
+                  <DialogTitle>Order #{selectedOrder?.$id.slice(-8).toUpperCase()}</DialogTitle>
+                  <DialogDescription>Placed on {selectedOrder && new Date(selectedOrder.$createdAt).toLocaleString("en-PK")}</DialogDescription>
+                </DialogHeader>
+                <div className="grid md:grid-cols-2 gap-6 py-4">
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-sm border-b pb-2">Customer Details</h3>
+                    <div className="space-y-2 text-sm">
+                      <p><span className="text-muted-foreground">Name:</span> <span className="font-medium">{selectedOrder?.name || "N/A"}</span></p>
+                      <p><span className="text-muted-foreground">Phone:</span> <span className="font-medium">{selectedOrder?.phone || "N/A"}</span></p>
+                      <p><span className="text-muted-foreground">Address:</span> <span className="font-medium">{selectedOrder?.address || "N/A"}</span></p>
+                      <p><span className="text-muted-foreground">City:</span> <span className="font-medium">{selectedOrder?.city || "N/A"}</span></p>
+                      <p><span className="text-muted-foreground">Postal Code:</span> <span className="font-medium">{selectedOrder?.postalCode || "N/A"}</span></p>
+                      <p><span className="text-muted-foreground">Payment:</span> <span className="font-medium">{selectedOrder?.paymentMethod || "Cash on Delivery"}</span></p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-sm border-b pb-2">Order Items</h3>
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
+                      {selectedOrder?.items ? (() => {
+                        try {
+                          const items = JSON.parse(selectedOrder.items);
+                          return items.map((item: any, idx: number) => (
+                            <div key={idx} className="flex justify-between text-sm">
+                              <span>{item.qty}x {item.name}</span>
+                              <span className="font-medium">{formatPKR(item.price * item.qty)}</span>
+                            </div>
+                          ));
+                        } catch {
+                          return <p className="text-sm">{selectedOrder.items}</p>;
+                        }
+                      })() : <p className="text-sm">No items found</p>}
+                    </div>
+                    <div className="border-t pt-2 flex justify-between font-bold">
+                      <span>Total Amount</span>
+                      <span className="text-primary">{formatPKR(selectedOrder?.total || 0)}</span>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* USERS */}

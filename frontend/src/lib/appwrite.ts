@@ -28,6 +28,11 @@ export const authService = {
   async register(name: string, email: string, password: string) {
     const user = await account.create(ID.unique(), email, password, name);
     await account.createEmailPasswordSession(email, password);
+    try {
+      await databases.createDocument(DB, COL.users, user.$id, { name, email });
+    } catch (e) {
+      console.error("Failed to sync user to DB:", e);
+    }
     return user;
   },
   async login(email: string, password: string) {

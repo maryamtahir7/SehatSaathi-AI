@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { HeartPulse, Mic, MicOff, SendHorizonal, ShoppingCart, Volume2, VolumeX, Globe } from "lucide-react";
+import { SendHorizonal, Mic, MicOff, PhoneCall, PhoneOff, Volume2, VolumeX, Globe, HeartPulse, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,7 @@ function Chat() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [listening, setListening] = useState(false);
+  const [continuousCall, setContinuousCall] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
@@ -62,28 +63,15 @@ function Chat() {
     }
   }, [messages, typing]);
 
-  // TTS: speak AI responses when enabled
-  const speak = useCallback((text: string) => {
-    if (!ttsEnabled || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text.replace(/[#*`]/g, ""));
-    utter.lang = lang === "ur" ? "ur-PK" : "en-US";
-    utter.rate = 0.95;
-    window.speechSynthesis.speak(utter);
-  }, [ttsEnabled, lang]);
-
-  // Voice input
-  const toggleVoice = () => {
+  const startListening = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Voice input not supported in this browser. Please use Chrome.");
       return;
     }
 
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
     }
 
     const recognition = new SpeechRecognition();
@@ -95,7 +83,7 @@ function Chat() {
       const transcript = e.results[0][0].transcript;
       setInput(transcript);
       setListening(false);
-      send(transcript); // Auto-send the transcribed text
+      send(transcript);
     };
     recognition.onend = () => setListening(false);
     recognition.onerror = () => setListening(false);
@@ -104,6 +92,57 @@ function Chat() {
     recognition.start();
     setListening(true);
   };
+
+  const toggleCallMode = () => {
+    if (continuousCall) {
+      setContinuousCall(false);
+      if (listening) {
+        recognitionRef.current?.stop();
+        setListening(false);
+      }
+      window.speechSynthesis?.cancel();
+    } else {
+      setTtsEnabled(true);
+      setContinuousCall(true);
+      startListening();
+    }
+  };
+
+  const toggleVoice = () => {
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      setContinuousCall(false);
+    } else {
+      startListening();
+    }
+  };
+
+  // TTS: speak AI responses when enabled
+  const speak = useCallback((text: string) => {
+    if (!ttsEnabled || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    
+    // Strip markdown formatting and br tags so voice doesn't read dashes/asterisks
+    const cleanText = text
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/[#*`\-_]/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // clean links
+      .replace(/\n/g, " ");
+
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    utter.lang = lang === "ur" ? "ur-PK" : "en-US";
+    utter.rate = 0.95;
+    
+    utter.onend = () => {
+      // If continuous call is active, immediately start listening again after AI finishes speaking
+      if (continuousCall) {
+        startListening();
+      }
+    };
+
+    window.speechSynthesis.speak(utter);
+  }, [ttsEnabled, lang, continuousCall]);
 
   const send = async (text: string) => {
     const clean = text.trim();
@@ -233,7 +272,7 @@ function Chat() {
                         a: ({ ...props }) => <a className="text-primary underline hover:text-primary/80" {...props} />,
                       }}
                     >
-                      {m.text}
+                      {m.text.replace(/<br\s*\/?>/gi, '\n')}
                     </ReactMarkdown>
                   )}
 
@@ -313,16 +352,27 @@ function Chat() {
               className="h-12 rounded-full px-5"
               dir={lang === "ur" ? "rtl" : "ltr"}
             />
-            {/* Voice Button */}
+            {/* Phone Call Button */}
             <Button
               type="button"
               size="icon"
-              variant={listening ? "destructive" : "outline"}
+              variant={continuousCall ? "destructive" : "secondary"}
+              onClick={toggleCallMode}
+              className={`size-12 shrink-0 rounded-full ${continuousCall ? "animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.6)]" : ""}`}
+              title={continuousCall ? "End call" : "Start Voice Call"}
+            >
+              {continuousCall ? <PhoneOff className="size-4" /> : <PhoneCall className="size-4" />}
+            </Button>
+            {/* Mic Button */}
+            <Button
+              type="button"
+              size="icon"
+              variant={listening && !continuousCall ? "destructive" : "outline"}
               onClick={toggleVoice}
               className="size-12 shrink-0 rounded-full"
-              title={listening ? "Stop listening" : "Voice input"}
+              title={listening ? "Stop listening" : "Single Voice input"}
             >
-              {listening ? <MicOff className="size-4" /> : <Mic className="size-4" />}
+              {listening && !continuousCall ? <MicOff className="size-4" /> : <Mic className="size-4" />}
             </Button>
             {/* Send Button */}
             <Button

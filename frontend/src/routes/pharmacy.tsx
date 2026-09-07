@@ -215,40 +215,67 @@ function Pharmacy() {
       )}
 
       <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
-        <DialogContent className="sm:max-w-[425px] rounded-3xl">
-          <DialogHeader>
-            <DialogTitle>{selectedProduct?.name}</DialogTitle>
-            <DialogDescription>{selectedProduct?.brand} · {selectedProduct?.category}</DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-4 py-4">
-             <div className="flex h-48 w-full items-center justify-center rounded-2xl bg-secondary overflow-hidden text-7xl">
-                {(selectedProduct?.imageUrl || selectedProduct?.image_url) ? (
-                   <img src={productService.getImageUrl(selectedProduct.imageUrl || selectedProduct.image_url)} alt={selectedProduct?.name} className="h-full w-full object-cover" />
-                ) : (
-                   selectedProduct?.emoji || "💊"
-                )}
-             </div>
-             <div className="space-y-2">
-                <p className="font-semibold text-xl text-primary">{formatPKR(selectedProduct?.price || 0)}</p>
-                <p className="text-sm text-muted-foreground">{selectedProduct?.description || "No detailed description available for this product."}</p>
-             </div>
-          </div>
-          <div className="flex flex-col gap-2">
-             <div className="flex gap-2">
-               <Button className="flex-1 rounded-full gap-2" variant="outline" onClick={() => toast.success("Added to wishlist!")}>
-                  <Heart className="size-4" /> Wishlist
-               </Button>
-               <Button className="flex-1 rounded-full gap-2" onClick={() => { addToCart({ id: selectedProduct.$id || selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, image: selectedProduct.imageUrl || selectedProduct.image_url }); setSelectedProduct(null); }}>
-                  <Plus className="size-4" /> Add to Cart
-               </Button>
-             </div>
-             <Button className="w-full rounded-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => { 
-                addToCart({ id: selectedProduct.$id || selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, image: selectedProduct.imageUrl || selectedProduct.image_url }); 
-                setSelectedProduct(null); 
-                setCartOpen(true); 
-              }}>
-                Buy Now
-             </Button>
+        <DialogContent className="sm:max-w-3xl lg:max-w-4xl rounded-3xl p-0 overflow-hidden border-border/60">
+          <div className="grid md:grid-cols-2">
+            {/* Left: Image */}
+            <div className="flex h-64 md:h-[500px] w-full items-center justify-center bg-secondary/30 text-8xl p-6 relative">
+               {(selectedProduct?.imageUrl || selectedProduct?.image_url) ? (
+                  <img src={productService.getImageUrl(selectedProduct.imageUrl || selectedProduct.image_url)} alt={selectedProduct?.name} className="h-full w-full object-contain drop-shadow-sm" />
+               ) : (
+                  selectedProduct?.emoji || "💊"
+               )}
+               {selectedProduct?.tag && (
+                 <Badge className="absolute top-4 left-4 rounded-full text-xs shadow-sm bg-primary text-primary-foreground">{selectedProduct.tag}</Badge>
+               )}
+            </div>
+
+            {/* Right: Details */}
+            <div className="flex flex-col p-6 md:p-8 lg:p-10 justify-between h-full bg-card">
+               <div>
+                 <div className="flex items-center gap-2 mb-2">
+                   {selectedProduct?.brand && <span className="text-sm font-medium text-muted-foreground">{selectedProduct.brand}</span>}
+                   {selectedProduct?.category && <Badge variant="secondary" className="rounded-full text-[10px]">{selectedProduct.category}</Badge>}
+                 </div>
+                 <h2 className="text-2xl md:text-3xl font-display font-bold leading-tight mb-2">{selectedProduct?.name}</h2>
+                 
+                 <div className="flex items-center gap-1.5 text-sm font-medium text-warning mb-6">
+                   <Star className="size-4 fill-warning" /> 
+                   {selectedProduct?.rating || "4.8"}
+                 </div>
+
+                 <p className="text-3xl font-bold text-primary mb-6">{formatPKR(selectedProduct?.price || 0)}</p>
+
+                 <div className="space-y-3 mb-8">
+                   <h3 className="font-semibold text-sm">Product Description</h3>
+                   <p className="text-sm text-muted-foreground leading-relaxed">
+                     {selectedProduct?.description || "High-quality pharmaceutical product sourced from verified distributors. Guaranteed authentic and effective when used as directed."}
+                   </p>
+                   <ul className="text-sm text-muted-foreground list-disc list-inside mt-4 space-y-1">
+                     <li>Delivered in 60 minutes</li>
+                     <li>100% Authentic Guarantee</li>
+                     <li>Stored at optimal temperatures</li>
+                   </ul>
+                 </div>
+               </div>
+
+               <div className="flex flex-col gap-3 mt-auto pt-4 border-t border-border/40">
+                 <div className="flex gap-3">
+                   <Button className="flex-1 rounded-full h-12" variant="outline" onClick={() => toast.success("Added to wishlist!")}>
+                      <Heart className="size-4 mr-2" /> Wishlist
+                   </Button>
+                   <Button className="flex-1 rounded-full h-12" onClick={() => { addToCart({ id: selectedProduct.$id || selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, image: selectedProduct.imageUrl || selectedProduct.image_url }); setSelectedProduct(null); }}>
+                      <Plus className="size-4 mr-2" /> Add to Cart
+                   </Button>
+                 </div>
+                 <Button className="w-full rounded-full h-12 text-base font-medium bg-emerald-600 hover:bg-emerald-700 text-white shadow-soft" onClick={() => { 
+                    addToCart({ id: selectedProduct.$id || selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, image: selectedProduct.imageUrl || selectedProduct.image_url }); 
+                    setSelectedProduct(null); 
+                    setCartOpen(true); 
+                  }}>
+                    Buy Now
+                 </Button>
+               </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

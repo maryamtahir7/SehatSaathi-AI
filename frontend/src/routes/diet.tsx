@@ -243,7 +243,7 @@ At the end, add an H3 heading for "📊 Nutritional Summary" and one for "💡 D
                         td: ({ ...props }) => <td className="px-4 py-3 text-muted-foreground border-b border-border/40 last:border-0" {...props} />,
                       }}
                     >
-                      {aiPlan}
+                      {aiPlan.replace(/<br\s*\/?>/gi, '\n')}
                     </ReactMarkdown>
                   </div>
                 </div>
