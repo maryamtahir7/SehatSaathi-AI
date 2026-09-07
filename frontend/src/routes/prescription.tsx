@@ -102,12 +102,16 @@ function Prescription() {
 
     try {
       setOcrProgress("Starting text recognition...");
-      const imgElement = document.getElementById("prescription-img") as HTMLImageElement;
-      if (!imgElement) {
-        throw new Error("Could not find the image element to scan.");
-      }
       
-      const { data: { text } } = await workerRef.current.recognize(imgElement);
+      // Convert File to base64 string to avoid cross-origin / File serialization issues in Web Workers
+      const base64Image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(file);
+      });
+      
+      const { data: { text } } = await workerRef.current.recognize(base64Image);
 
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
       const meds: any[] = [];
