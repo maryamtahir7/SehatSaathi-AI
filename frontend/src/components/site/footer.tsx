@@ -37,7 +37,7 @@ export function Footer() {
             <li>About SehatSaathi</li>
             <li><Link to="/terms" className="transition-colors hover:text-primary">{t("terms")}</Link></li>
             <li><Link to="/privacy" className="transition-colors hover:text-primary">{t("privacy")}</Link></li>
-            <li>Partner with us</li>
+            <li>Gulberg III, Lahore Faisalabad, Pakistan</li>
           </ul>
         </div>
 
@@ -51,10 +51,10 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-border/60 px-4 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-        <div>
-          © {new Date().getFullYear()} SehatSaathi AI. All rights reserved. {t("disclaimer")}
+        <div className="flex-1 text-center md:text-center md:absolute md:left-1/2 md:-translate-x-1/2">
+          © 2026 SehatSaathi AI. All rights reserved. {t("disclaimer")}
         </div>
-        <div className="font-medium text-foreground/80">
+        <div className="flex-1 text-center md:text-right font-medium text-foreground/80 md:ml-auto z-10 relative">
           Developed by <a href="http://www.maryamtahir.tech" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Maryam Tahir</a>
         </div>
       </div>

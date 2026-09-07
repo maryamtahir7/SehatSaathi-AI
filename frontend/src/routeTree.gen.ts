@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
 import { Route as DietRouteImport } from './routes/diet'
+import { Route as HospitalsRouteImport } from './routes/hospitals'
 import { Route as PharmacyRouteImport } from './routes/pharmacy'
 import { Route as PrescriptionRouteImport } from './routes/prescription'
 import { Route as SymptomsRouteImport } from './routes/symptoms'
@@ -43,6 +44,11 @@ const DietRoute = DietRouteImport.update({
   path: '/diet',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HospitalsRoute = HospitalsRouteImport.update({
+  id: '/hospitals',
+  path: '/hospitals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PharmacyRoute = PharmacyRouteImport.update({
   id: '/pharmacy',
   path: '/pharmacy',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof ChatRoute
   '/diagnostics': typeof DiagnosticsRoute
   '/diet': typeof DietRoute
+  '/hospitals': typeof HospitalsRoute
   '/pharmacy': typeof PharmacyRoute
   '/prescription': typeof PrescriptionRoute
   '/symptoms': typeof SymptomsRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/chat': typeof ChatRoute
   '/diagnostics': typeof DiagnosticsRoute
   '/diet': typeof DietRoute
+  '/hospitals': typeof HospitalsRoute
   '/pharmacy': typeof PharmacyRoute
   '/prescription': typeof PrescriptionRoute
   '/symptoms': typeof SymptomsRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/chat': typeof ChatRoute
   '/diagnostics': typeof DiagnosticsRoute
   '/diet': typeof DietRoute
+  '/hospitals': typeof HospitalsRoute
   '/pharmacy': typeof PharmacyRoute
   '/prescription': typeof PrescriptionRoute
   '/symptoms': typeof SymptomsRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/diagnostics'
     | '/diet'
+    | '/hospitals'
     | '/pharmacy'
     | '/prescription'
     | '/symptoms'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/diagnostics'
     | '/diet'
+    | '/hospitals'
     | '/pharmacy'
     | '/prescription'
     | '/symptoms'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/diagnostics'
     | '/diet'
+    | '/hospitals'
     | '/pharmacy'
     | '/prescription'
     | '/symptoms'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRoute
   DiagnosticsRoute: typeof DiagnosticsRoute
   DietRoute: typeof DietRoute
+  HospitalsRoute: typeof HospitalsRoute
   PharmacyRoute: typeof PharmacyRoute
   PrescriptionRoute: typeof PrescriptionRoute
   SymptomsRoute: typeof SymptomsRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DietRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hospitals': {
+      id: '/hospitals'
+      path: '/hospitals'
+      fullPath: '/hospitals'
+      preLoaderRoute: typeof HospitalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pharmacy': {
       id: '/pharmacy'
       path: '/pharmacy'
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRoute,
   DiagnosticsRoute: DiagnosticsRoute,
   DietRoute: DietRoute,
+  HospitalsRoute: HospitalsRoute,
   PharmacyRoute: PharmacyRoute,
   PrescriptionRoute: PrescriptionRoute,
   SymptomsRoute: SymptomsRoute,
