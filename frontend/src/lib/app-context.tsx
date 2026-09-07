@@ -50,7 +50,14 @@ const AppContext = createContext<AppState | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>("en");
   const [dark, setDark] = useState(false);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem("sehatsaathi_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [cartOpen, setCartOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [user, setUser] = useState<AppUser | null>(null);
@@ -74,6 +81,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
+
+  useEffect(() => {
+    localStorage.setItem("sehatsaathi_cart", JSON.stringify(cart));
+  }, [cart]);
 
   const t = useCallback((key: DictKey) => translate(key, lang), [lang]);
 

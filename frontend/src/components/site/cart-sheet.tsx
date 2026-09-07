@@ -25,6 +25,7 @@ export function CartSheet() {
     try {
       await orderService.create({
         name: user?.name || "Guest Order",
+        phone: "+920000000000",
         items: JSON.stringify(cart),
         total: cartTotal + delivery,
         status: "Pending",
