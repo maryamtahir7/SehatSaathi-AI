@@ -1,22 +1,26 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { HeartPulse, Menu, Moon, ShoppingCart, Sun, Languages, X } from "lucide-react";
+import { HeartPulse, Menu, Moon, ShoppingCart, Sun, Languages, X, ChevronDown, Activity, Sparkles, FileText, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useApp } from "@/lib/app-context";
 import type { DictKey } from "@/lib/i18n";
 
-const links: { to: string; key: DictKey }[] = [
+const mainLinks: { to: string; key: DictKey }[] = [
   { to: "/", key: "nav_home" },
-  { to: "/diagnostics", key: "nav_diagnostics" },
-  { to: "/symptoms", key: "nav_symptoms" },
-  { to: "/diet", key: "nav_diet" },
   { to: "/pharmacy", key: "nav_pharmacy" },
-  { to: "/prescription", key: "nav_scan" },
   { to: "/hospitals", key: "nav_hospitals" },
   { to: "/chat", key: "nav_chat" },
+];
+
+const serviceLinks: { to: string; key: DictKey; icon: any }[] = [
+  { to: "/diagnostics", key: "nav_diagnostics", icon: Activity },
+  { to: "/symptoms", key: "nav_symptoms", icon: Sparkles },
+  { to: "/diet", key: "nav_diet", icon: Utensils },
+  { to: "/prescription", key: "nav_scan", icon: FileText },
 ];
 
 export function Navbar() {
@@ -37,26 +41,50 @@ export function Navbar() {
             <span className="font-display text-lg font-semibold tracking-tight">{t("brand")}</span>
           </Link>
 
-          <div className="mx-auto hidden items-center gap-1 lg:flex">
-            {links.map((l) => (
+          <div className="mx-auto hidden items-center gap-1.5 lg:flex">
+            {mainLinks.map((l) => (
               <Link
                 key={l.to}
                 to={l.to}
                 className={cn(
-                  "relative rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                  pathname === l.to && "text-foreground",
+                  "relative rounded-full px-3 py-2 text-[14px] font-medium text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap",
+                  pathname === l.to && "text-foreground font-semibold",
                 )}
               >
                 {pathname === l.to && (
                   <motion.span
                     layoutId="nav-pill"
-                    className="absolute inset-0 rounded-full bg-primary-soft"
+                    className="absolute inset-0 rounded-full bg-primary/10"
                     transition={{ type: "spring", stiffness: 400, damping: 32 }}
                   />
                 )}
                 <span className="relative">{t(l.key)}</span>
               </Link>
             ))}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="rounded-full px-3 py-2 text-[14px] font-medium text-muted-foreground hover:text-foreground hover:bg-transparent h-auto gap-1">
+                  {lang === "en" ? "AI Services" : "خدمات"}
+                  <ChevronDown className="size-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-56 rounded-2xl p-2 border-border/60 shadow-xl bg-card/95 backdrop-blur-xl">
+                {serviceLinks.map((sl) => {
+                  const Icon = sl.icon;
+                  return (
+                    <DropdownMenuItem key={sl.to} asChild className="rounded-xl cursor-pointer p-2 focus:bg-primary/10">
+                      <Link to={sl.to} className="flex items-center gap-3 w-full">
+                        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                          <Icon className="size-4" />
+                        </div>
+                        <span className="font-medium text-sm">{t(sl.key)}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="ms-auto flex items-center gap-1.5 lg:ms-0">
@@ -135,14 +163,14 @@ export function Navbar() {
           className="glass border-b border-border/60 lg:hidden"
         >
           <div className="mx-auto grid max-w-7xl gap-1 px-4 py-4 sm:px-6">
-            {links.map((l) => (
+            {[...mainLinks, ...serviceLinks].map((l) => (
               <Link
                 key={l.to}
                 to={l.to}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "rounded-xl px-4 py-3 text-sm font-medium transition-colors hover:bg-primary-soft",
-                  pathname === l.to && "bg-primary-soft",
+                  "rounded-xl px-4 py-3 text-sm font-medium transition-colors hover:bg-primary/10",
+                  pathname === l.to && "bg-primary/10 text-primary font-semibold",
                 )}
               >
                 {t(l.key)}
