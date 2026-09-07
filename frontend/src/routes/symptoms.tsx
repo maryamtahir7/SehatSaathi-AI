@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
 import { symptomOptions } from "@/lib/mock-data";
+import { useApp } from "@/lib/app-context";
 
 interface PredictionResult {
   disease: string;
@@ -43,6 +44,7 @@ export const Route = createFileRoute("/symptoms")({
 });
 
 function Symptoms() {
+  const { t } = useApp();
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -99,9 +101,9 @@ function Symptoms() {
 
   return (
     <PageShell
-      eyebrow="Module 02"
-      title="Symptom Checker & Disease Predictor"
-      description="Tell us what you're feeling. Our ML model compares your symptom pattern against thousands of clinical cases."
+      eyebrow={t("module_02")}
+      title={t("symptoms_title")}
+      description={t("symptoms_desc")}
       wide
     >
       <div className="grid gap-6 lg:grid-cols-2">

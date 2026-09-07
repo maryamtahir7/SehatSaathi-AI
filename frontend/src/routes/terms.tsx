@@ -1,16 +1,18 @@
 import { PageShell } from "@/components/site/page-shell";
 import { createFileRoute } from '@tanstack/react-router';
+import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute('/terms')({
   component: TermsOfService,
 });
 
 function TermsOfService() {
+  const { t } = useApp();
   return (
     <PageShell
-      eyebrow="Legal"
-      title="Terms of Service"
-      description="The rules and guidelines for using SehatSaathi AI services."
+      eyebrow={t("legal_eyebrow")}
+      title={t("terms_title")}
+      description={t("terms_desc")}
     >
       <div className="max-w-3xl mx-auto py-10 px-6 prose prose-slate dark:prose-invert">
         <div className="glass rounded-3xl p-8 md:p-12 border border-border/60 shadow-soft space-y-6">

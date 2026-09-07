@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
+import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute("/diagnostics")({
   head: () => ({
@@ -32,6 +33,7 @@ const tabs = [
 ];
 
 function Diagnostics() {
+  const { t } = useApp();
   const [tab, setTab] = useState("xray");
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -101,9 +103,9 @@ function Diagnostics() {
 
   return (
     <PageShell
-      eyebrow="Module 01"
-      title="AI Medical Imaging Dashboard"
-      description="Pick a scan type, upload your image, and read a structured AI interpretation in seconds."
+      eyebrow={t("module_01")}
+      title={t("diagnostics_title")}
+      description={t("diagnostics_desc")}
       wide
     >
       <Tabs

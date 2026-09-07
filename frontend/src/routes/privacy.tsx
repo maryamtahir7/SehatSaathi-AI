@@ -1,16 +1,18 @@
 import { PageShell } from "@/components/site/page-shell";
 import { createFileRoute } from '@tanstack/react-router';
+import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute('/privacy')({
   component: PrivacyPolicy,
 });
 
 function PrivacyPolicy() {
+  const { t } = useApp();
   return (
     <PageShell
-      eyebrow="Legal"
-      title="Privacy Policy"
-      description="How we handle and protect your personal medical data."
+      eyebrow={t("legal_eyebrow")}
+      title={t("privacy_title")}
+      description={t("privacy_desc")}
     >
       <div className="max-w-3xl mx-auto py-10 px-6 prose prose-slate dark:prose-invert">
         <div className="glass rounded-3xl p-8 md:p-12 border border-border/60 shadow-soft space-y-6">

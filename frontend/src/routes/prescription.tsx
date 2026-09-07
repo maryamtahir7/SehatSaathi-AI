@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
+import { useApp } from "@/lib/app-context";
 import { formatPKR, useApp } from "@/lib/app-context";
 import { createWorker, Worker } from 'tesseract.js';
 
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/prescription")({
 });
 
 function Prescription() {
-  const { addToCart, setCartOpen } = useApp();
+  const { t, addToCart, setCartOpen } = useApp();
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");
@@ -236,9 +237,9 @@ function Prescription() {
 
   return (
     <PageShell
-      eyebrow="Module 04"
-      title="Prescription OCR Scanner"
-      description="Even messy handwriting — our OCR reads the medicine, dosage and frequency and lets you order in one tap."
+      eyebrow={t("module_04")}
+      title={t("prescription_title")}
+      description={t("prescription_desc")}
       wide
     >
       <div className="grid gap-6 lg:grid-cols-5">

@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
+import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute("/diet")({
   head: () => ({
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/diet")({
 const restrictions = ["Diabetes", "Hypertension", "Gluten-Free", "Lactose Intolerant", "Vegetarian", "Low Sodium"];
 
 function Diet() {
+  const { t } = useApp();
   const [form, setForm] = useState({ age: "32", weight: "78", height: "172", gender: "male", goal: "loss" });
   const [picked, setPicked] = useState<string[]>(["Diabetes"]);
   const [loading, setLoading] = useState(false);
@@ -94,9 +96,9 @@ At the end, add an H3 heading for "📊 Nutritional Summary" and one for "💡 D
 
   return (
     <PageShell
-      eyebrow="Module 03"
-      title="Diet & Nutrition Planner"
-      description="A dietitian-style plan built around your body metrics, goal and medical conditions."
+      eyebrow={t("module_03")}
+      title={t("diet_title")}
+      description={t("diet_desc")}
       wide
     >
       <div className="grid gap-6 lg:grid-cols-5">

@@ -9,8 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
-import { suggestedPrompts } from "@/lib/mock-data";
 import { useApp } from "@/lib/app-context";
+import { suggestedPrompts } from "@/lib/mock-data";
 import { productService } from "@/lib/appwrite";
 
 export const Route = createFileRoute("/chat")({
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/chat")({
   component: Chat,
 });
 
-type MedProduct = { id: string; name: string; price: number; image_url?: string };
+type MedProduct = { id: string; name: string; price: number; image_url?: string; emoji?: string };
 type Msg = { id: number; role: "user" | "ai" | "system"; text: string; products?: MedProduct[] };
 
 declare global {
@@ -191,9 +191,9 @@ function Chat() {
 
   return (
     <PageShell
-      eyebrow="Module 06"
-      title="AI Health Assistant"
-      description="Available round the clock in English and Urdu — for the questions you'd rather not Google."
+      eyebrow={t("module_06")}
+      title={t("chat_title")}
+      description={t("chat_desc")}
     >
       <Card className="flex flex-col overflow-hidden rounded-3xl border-border/60 p-0 shadow-lift" style={{ height: "36rem" }}>
         {/* Header */}

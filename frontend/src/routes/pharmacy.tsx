@@ -91,9 +91,9 @@ function Pharmacy() {
 
   return (
     <PageShell
-      eyebrow="Module 05"
-      title="SehatSaathi Pharmacy"
-      description="Verified medicines and devices sourced from licensed distributors, at your door in 60 minutes."
+      eyebrow={t("module_05")}
+      title={t("pharmacy_title")}
+      description={t("pharmacy_desc")}
       wide
     >
       <Card className="rounded-3xl border-border/60 p-6 shadow-soft">
