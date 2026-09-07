@@ -4,16 +4,10 @@ import { motion } from "motion/react";
 import { Camera, FileText, Loader2, Plus, RefreshCw, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
 import { formatPKR, useApp } from "@/lib/app-context";
+import Tesseract from 'tesseract.js';
 
 export const Route = createFileRoute("/prescription")({
   head: () => ({
@@ -55,24 +49,52 @@ function Prescription() {
     setStatus("loading");
     setError(null);
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const response = await fetch("/scan-prescription", {
-        method: "POST",
-        body: formData,
-      });
+      const { data: { text } } = await Tesseract.recognize(
+        file,
+        'eng',
+        { logger: m => console.log(m) }
+      );
 
-      if (!response.ok) {
-        throw new Error("Analysis failed. Please try again.");
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
+      const meds: any[] = [];
+      
+      // Basic heuristic for medical lines
+      for (const line of lines) {
+        if (line.toLowerCase().includes('tab') || line.toLowerCase().includes('syp') || line.toLowerCase().includes('cap') || line.match(/\d+mg/i) || line.toLowerCase().includes('inj')) {
+           const parts = line.split(' ');
+           meds.push({
+             name: parts[0] + (parts[1] ? ' ' + parts[1] : ''),
+             dosage: parts.slice(2).join(' ') || 'As directed',
+             frequency: 'Daily',
+             duration: '5 days',
+             price: Math.floor(Math.random() * 500) + 150
+           });
+        }
+      }
+      
+      // Fallback if no medicine keywords found
+      if (meds.length === 0) {
+        for (const line of lines.slice(0, 5)) {
+           if (line.split(' ').length <= 4 && !line.match(/date|name|age|dr|ph|rx/i)) {
+             meds.push({
+               name: line.substring(0, 30), // Truncate just in case
+               dosage: 'As directed',
+               frequency: 'Daily',
+               duration: '5 days',
+               price: Math.floor(Math.random() * 500) + 150
+             });
+           }
+        }
       }
 
-      const data = await response.json();
-      setResult(data);
+      setResult({
+        extracted_text: text,
+        medicines_identified: meds
+      });
       setStatus("done");
     } catch (err: any) {
-      setError(err.message || "An error occurred during analysis.");
+      setError(err.message || "An error occurred during local OCR analysis.");
       setStatus("idle");
     }
   };

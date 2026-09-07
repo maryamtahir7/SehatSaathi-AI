@@ -14,8 +14,9 @@ def get_mime_type(image_bytes: bytes) -> str:
     return 'image/jpeg' # fallback
 
 def gemini_extract_text(image_bytes: bytes) -> str:
-    """Use Groq Vision API to extract text from a prescription image (Function kept same name for compatibility)."""
-    api_key = os.getenv("GROQ_API_KEY", "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")
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return "ERROR: GROQ_API_KEY is missing in environment variables."
     url = "https://api.groq.com/openai/v1/chat/completions"
 
     b64_img = base64.b64encode(image_bytes).decode("utf-8")
