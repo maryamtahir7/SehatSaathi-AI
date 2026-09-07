@@ -90,7 +90,7 @@ function Prescription() {
   };
 
   const submitAnalysis = async () => {
-    if (!file) return;
+    if (!file || !preview) return;
     setStatus("loading");
     setError(null);
 
@@ -102,7 +102,8 @@ function Prescription() {
 
     try {
       setOcrProgress("Starting text recognition...");
-      const { data: { text } } = await workerRef.current.recognize(file);
+      // Use the preview blob URL instead of the File object to prevent File object serialization issues in v7 workers
+      const { data: { text } } = await workerRef.current.recognize(preview);
 
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 3);
       const meds: any[] = [];
@@ -142,7 +143,8 @@ function Prescription() {
       });
       setStatus("done");
     } catch (err: any) {
-      setError(err.message || "An error occurred during local OCR analysis.");
+      console.error("OCR Error:", err);
+      setError(err?.message ? `OCR Error: ${err.message}` : `An error occurred: ${String(err)}`);
       setStatus("idle");
     }
   };
