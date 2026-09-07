@@ -28,6 +28,7 @@ export function CartSheet() {
         phone: "+920000000000",
         address: "Address not provided",
         city: "Not provided",
+        postalcode: "00000",
         items: JSON.stringify(cart),
         total: cartTotal + delivery,
         status: "Pending",
