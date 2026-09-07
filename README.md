@@ -7,6 +7,8 @@
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel_Edge-black?style=for-the-badge&logo=vercel)](https://sehatsaathi-ai.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/maryamtahir7/SehatSaathi-AI)
+[![Documentation PDF](https://img.shields.io/badge/Documentation-PDF-E11D48?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](./docs/Final_SehatSaathi_AI_Documentation.pdf)
+[![Presentation Slides](https://img.shields.io/badge/Presentation-Slides_PDF-F59E0B?style=for-the-badge&logo=googleslides&logoColor=white)](./docs/SehatSaathi_AI_Presentation.pdf)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 ![React](https://img.shields.io/badge/React_19-61DAFB?style=flat-square&logo=react&logoColor=black)
@@ -26,7 +28,7 @@
 
 ---
 
-##  Table of Contents
+## 📑 Table of Contents
 
 - [Overview](#-overview)
 - [Problem Statement](#-problem-statement)
@@ -54,7 +56,7 @@
 
 ---
 
-##  Overview
+## 🌟 Overview
 
 **SehatSaathi AI** (*Sehat* = Health, *Saathi* = Companion in Urdu) is a production-deployed, full-stack, AI-native healthcare platform engineered to bridge the critical healthcare divide across Pakistan and South Asia.
 
@@ -62,7 +64,7 @@ By combining **custom-trained ONNX deep learning models**, **high-throughput Gro
 
 ---
 
-##  Problem Statement
+## 🚨 Problem Statement
 
 <div align="center">
 <img src="./docs/problem_solution_slide_1788793958300.jpg" alt="Problem Statement vs Solution Overview" width="900" style="border-radius: 10px;" />
@@ -81,12 +83,12 @@ By combining **custom-trained ONNX deep learning models**, **high-throughput Gro
 
 ---
 
-##  Key Features & Modules
+## 🔬 Key Features & Modules
 
 ### Module 1: AI Medical Diagnostics (`/diagnostics`)
 Automated radiology triage accepting Brain MRI scans, Chest X-Rays, and Dermatology photos with sub-5-second clinical reports.
 
-* **Auto-Modality Detection:** Analyzes mean pixel luminance (mean < 95 => Brain MRI; mean >= 95 => Chest X-Ray).
+* **Auto-Modality Detection:** Analyzes mean pixel luminance ($	ext{mean} < 95 \implies$ Brain MRI; $	ext{mean} \ge 95 \implies$ Chest X-Ray).
 * **Brain MRI:** 4-class classification (**Glioma, Meningioma, Pituitary Tumor, Healthy**) via `braintumor.onnx`.
 * **Chest X-Ray:** Binary classification (**Pneumonia vs Healthy Thorax**) via `lung.onnx`.
 * **Skin Lesion Classifier:** Dermatology diagnosis across conditions via `skin.onnx`.
@@ -193,7 +195,7 @@ Enterprise administrative dashboard for healthcare platform management and telem
 
 ---
 
-##  System Architecture & Diagrams
+## 🏛️ System Architecture & Diagrams
 
 SehatSaathi AI implements a modern **Three-Tier Hybrid Serverless + Micro-Services Architecture**:
 
@@ -247,7 +249,7 @@ SehatSaathi AI implements a modern **Three-Tier Hybrid Serverless + Micro-Servic
 
 ---
 
-##  Technology Stack
+## 💻 Technology Stack
 
 <div align="center">
 <img src="./docs/tech_stack_slide_1788793893487.jpg" alt="Technology Stack Overview" width="900" style="border-radius: 10px;" />
@@ -287,7 +289,7 @@ SehatSaathi AI implements a modern **Three-Tier Hybrid Serverless + Micro-Servic
 
 ---
 
-##  Project Structure
+## 📁 Project Structure
 
 ```
 SehatSaathi-AI/
@@ -324,13 +326,15 @@ SehatSaathi-AI/
 ├── docs/                            # Comprehensive documentation & figures
 │   ├── images/                      # High-res architecture diagrams (PNG)
 │   ├── screenshots/                 # Complete UI screenshots
-│   └── PROJECT_DOCUMENTATION.md     # Full technical documentation
+│   ├── Final_SehatSaathi_AI_Documentation.pdf   # Complete Official Documentation
+│   ├── SehatSaathi_AI_Presentation.pdf          # Official Presentation Slides
+│   └── PROJECT_DOCUMENTATION.md                 # Full technical documentation
 └── README.md
 ```
 
 ---
 
-##  Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 * **Node.js**: v20.x or v22.x+
@@ -383,7 +387,7 @@ Open **http://localhost:3000** in your browser.
 
 ---
 
-##  API Reference
+## ⚡ API Reference
 
 | Method | Endpoint | Description | Payload / Params |
 |:---|:---|:---|:---|
@@ -396,7 +400,7 @@ Open **http://localhost:3000** in your browser.
 
 ---
 
-##  License
+## 📜 License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
