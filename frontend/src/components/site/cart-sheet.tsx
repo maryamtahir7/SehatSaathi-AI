@@ -27,6 +27,7 @@ export function CartSheet() {
         name: user?.name || "Guest Order",
         phone: "+920000000000",
         address: "Address not provided",
+        city: "Not provided",
         items: JSON.stringify(cart),
         total: cartTotal + delivery,
         status: "Pending",

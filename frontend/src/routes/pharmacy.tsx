@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Plus, Search, Star, Truck, Loader2 } from "lucide-react";
+import { Plus, Search, Star, Truck, Loader2, Heart } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -37,7 +38,7 @@ const FALLBACK_PRODUCTS = [
 ];
 
 function Pharmacy() {
-  const { addToCart, t } = useApp();
+  const { addToCart, t, setCartOpen } = useApp();
   const [cat, setCat] = useState<string>("All");
   const [q, setQ] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -232,9 +233,21 @@ function Pharmacy() {
                 <p className="text-sm text-muted-foreground">{selectedProduct?.description || "No detailed description available for this product."}</p>
              </div>
           </div>
-          <div className="flex gap-3">
-             <Button className="w-full rounded-full gap-2" onClick={() => { addToCart({ id: selectedProduct.$id || selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, image: selectedProduct.imageUrl || selectedProduct.image_url }); setSelectedProduct(null); }}>
-                <Plus className="size-4" /> Add to Cart
+          <div className="flex flex-col gap-2">
+             <div className="flex gap-2">
+               <Button className="flex-1 rounded-full gap-2" variant="outline" onClick={() => toast.success("Added to wishlist!")}>
+                  <Heart className="size-4" /> Wishlist
+               </Button>
+               <Button className="flex-1 rounded-full gap-2" onClick={() => { addToCart({ id: selectedProduct.$id || selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, image: selectedProduct.imageUrl || selectedProduct.image_url }); setSelectedProduct(null); }}>
+                  <Plus className="size-4" /> Add to Cart
+               </Button>
+             </div>
+             <Button className="w-full rounded-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => { 
+                addToCart({ id: selectedProduct.$id || selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, image: selectedProduct.imageUrl || selectedProduct.image_url }); 
+                setSelectedProduct(null); 
+                setCartOpen(true); 
+              }}>
+                Buy Now
              </Button>
           </div>
         </DialogContent>

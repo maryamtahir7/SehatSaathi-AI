@@ -68,6 +68,11 @@ function AdminDashboard() {
   const [saving, setSaving]       = useState(false);
   const [editId, setEditId]       = useState<string | null>(null);
 
+  // Category form
+  const [cName, setCName]         = useState("");
+  const [cImage, setCImage]       = useState("");
+  const [cSaving, setCSaving]     = useState(false);
+
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
       await databases.updateDocument(DB, COL.orders, orderId, { status });
@@ -121,6 +126,23 @@ function AdminDashboard() {
     if (!confirm("Delete this product?")) return;
     await productService.remove(id);
     setProducts(p => p.filter(x => x.$id !== id));
+  };
+
+  const saveCategory = async () => {
+    if (!cName) return;
+    setCSaving(true);
+    try {
+      await databases.createDocument(DB, COL.categories, ID.unique(), { name: cName, imageUrl: cImage });
+      await loadData();
+      setCName(""); setCImage("");
+    } catch (e) { console.error(e); }
+    finally { setCSaving(false); }
+  };
+
+  const deleteCategory = async (id: string) => {
+    if (!confirm("Delete this category?")) return;
+    await databases.deleteDocument(DB, COL.categories, id);
+    setCategories(c => c.filter(x => x.$id !== id));
   };
 
   const startEdit = (p: Product) => {
@@ -249,26 +271,48 @@ function AdminDashboard() {
 
           {/* CATEGORIES */}
           <TabsContent value="categories">
-            <h2 className="text-lg font-semibold mb-4">All Categories ({categories.length})</h2>
-            {loading ? (
-              <div className="flex justify-center py-10"><Loader2 className="size-6 animate-spin text-primary" /></div>
-            ) : categories.length === 0 ? (
-              <Card className="rounded-3xl border-border/60 p-8 text-center text-muted-foreground">No categories found in database.</Card>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {categories.map(c => (
-                  <Card key={c.$id} className="rounded-2xl border-border/60 p-4 shadow-soft flex items-center gap-4">
-                    <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl bg-primary-soft/70 text-2xl shrink-0">
-                      {c.imageUrl ? <img src={productService.getImageUrl(c.imageUrl)} alt={c.name} className="h-full w-full object-cover" /> : <Tag className="size-5 text-primary" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">{c.name}</p>
-                      {c.$createdAt && <p className="text-xs text-muted-foreground">{new Date(c.$createdAt).toLocaleDateString()}</p>}
-                    </div>
-                  </Card>
-                ))}
+            <div className="grid gap-6 lg:grid-cols-3">
+              {/* Add Category Form */}
+              <Card className="rounded-3xl border-border/60 p-6 shadow-soft h-fit">
+                <h2 className="text-lg font-semibold mb-4">Add Category</h2>
+                <div className="space-y-3">
+                  <div><Label>Category Name *</Label><Input value={cName} onChange={e=>setCName(e.target.value)} placeholder="Baby Care" className="mt-1 rounded-xl" /></div>
+                  <div><Label>Image URL</Label><Input value={cImage} onChange={e=>setCImage(e.target.value)} placeholder="https://..." className="mt-1 rounded-xl" /></div>
+                  <div className="pt-2">
+                    <Button className="w-full rounded-full" onClick={saveCategory} disabled={cSaving}>
+                      {cSaving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4 mr-1" />} Add Category
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Category List */}
+              <div className="lg:col-span-2 space-y-3">
+                <h2 className="text-lg font-semibold">All Categories ({categories.length})</h2>
+                {loading ? (
+                  <div className="flex justify-center py-10"><Loader2 className="size-6 animate-spin text-primary" /></div>
+                ) : categories.length === 0 ? (
+                  <Card className="rounded-3xl border-border/60 p-8 text-center text-muted-foreground">No categories found in database.</Card>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {categories.map(c => (
+                      <Card key={c.$id} className="rounded-2xl border-border/60 p-4 shadow-soft flex items-center gap-4">
+                        <div className="flex size-12 items-center justify-center overflow-hidden rounded-xl bg-primary-soft/70 text-2xl shrink-0">
+                          {c.imageUrl ? <img src={productService.getImageUrl(c.imageUrl)} alt={c.name} className="h-full w-full object-cover" /> : <Tag className="size-5 text-primary" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate">{c.name}</p>
+                          {c.$createdAt && <p className="text-xs text-muted-foreground">{new Date(c.$createdAt).toLocaleDateString()}</p>}
+                        </div>
+                        <Button variant="ghost" size="icon" className="size-8 rounded-full text-destructive shrink-0" onClick={() => deleteCategory(c.$id)}>
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </TabsContent>
 
           {/* ORDERS */}
