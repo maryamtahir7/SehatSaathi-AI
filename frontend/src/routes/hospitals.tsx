@@ -87,8 +87,7 @@ function HospitalFinder() {
   const fetchHospitals = async (lat: number, lon: number, currentSpecialty: string) => {
     setLoading(true);
     try {
-      const q = currentSpecialty !== "All" ? `${currentSpecialty} clinic hospital` : "hospital clinic";
-      const searchUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=50&viewbox=${lon-0.1},${lat-0.1},${lon+0.1},${lat+0.1}&bounded=1`;
+      const searchUrl = `https://nominatim.openstreetmap.org/search?q=hospital&format=json&addressdetails=1&limit=50&viewbox=${lon-0.1},${lat-0.1},${lon+0.1},${lat+0.1}&bounded=1`;
       const res = await fetch(searchUrl, { headers: { 'User-Agent': 'SehatSaathi/1.0' } });
       const data = await res.json();
       
@@ -149,7 +148,11 @@ function HospitalFinder() {
     return `Top-rated ${specialty === "All" ? "medical facility" : specialty.toLowerCase() + " center"} serving the community with 24/7 emergency care, highly qualified doctors, and state-of-the-art medical equipment.`;
   };
 
-  const filteredHospitals = hospitals.filter(h => 
+  const specialtyMatch = hospitals.filter(h => specialty === "All" || (h.tags.name || "").toLowerCase().includes(specialty.toLowerCase()));
+  const showSpecialtyWarning = specialty !== "All" && specialtyMatch.length === 0;
+  const displayHospitals = showSpecialtyWarning ? hospitals : specialtyMatch;
+
+  const filteredHospitals = displayHospitals.filter(h => 
     (h.tags.name || h.tags.operator || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -219,12 +222,19 @@ function HospitalFinder() {
                 <Loader2 className="size-6 animate-spin mb-2" />
                 <p className="text-sm">Locating {specialty === "All" ? "hospitals" : specialty}...</p>
               </div>
-            ) : filteredHospitals.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground text-sm">
-                No hospitals found. Try another search.
-              </div>
             ) : (
-              filteredHospitals.map(h => (
+              <>
+                {showSpecialtyWarning && (
+                  <div className="bg-amber-500/10 text-amber-500 p-3 rounded-xl text-xs mb-1">
+                    No specific <strong>{specialty}</strong> hospitals found nearby. Showing general hospitals instead.
+                  </div>
+                )}
+                {filteredHospitals.length === 0 ? (
+                  <div className="text-center py-10 text-muted-foreground text-sm">
+                    No hospitals found. Try another search.
+                  </div>
+                ) : (
+                  filteredHospitals.map(h => (
                 <div 
                   key={h.id} 
                   className={`p-4 rounded-2xl border transition-all cursor-pointer ${selectedHospital?.id === h.id ? 'border-primary bg-primary/5 shadow-md' : 'border-border/60 hover:border-primary/40 bg-card'}`}
@@ -248,6 +258,8 @@ function HospitalFinder() {
                   </div>
                 </div>
               ))
+            )}
+            </>
             )}
           </div>
         </Card>
