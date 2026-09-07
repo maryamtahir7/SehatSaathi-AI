@@ -4,6 +4,7 @@ import { useState } from "react";
 import { HeartPulse, Menu, Moon, ShoppingCart, Sun, Languages, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useApp } from "@/lib/app-context";
 import type { DictKey } from "@/lib/i18n";
 
@@ -21,6 +22,7 @@ export function Navbar() {
   const { t, lang, setLang, dark, toggleDark, cartCount, setCartOpen, setAuthOpen, user, signOut } =
     useApp();
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
@@ -96,11 +98,11 @@ export function Navbar() {
             </Button>
             {user ? (
               <div className="hidden sm:flex items-center gap-1.5">
+                <Button variant="outline" size="sm" className="rounded-full gap-1.5" onClick={() => setProfileOpen(true)}>
+                  {user.name?.split(" ")[0] ?? user.email?.split("@")[0]}
+                </Button>
                 <Button variant="outline" size="sm" className="rounded-full gap-1.5" asChild>
                   <Link to="/admin">Admin</Link>
-                </Button>
-                <Button variant="outline" size="sm" className="rounded-full" onClick={() => signOut()}>
-                  {user.name?.split(" ")[0] ?? user.email?.split("@")[0]} · Sign Out
                 </Button>
               </div>
             ) : (
@@ -158,6 +160,43 @@ export function Navbar() {
             )}
           </div>
         </motion.div>
+      )}
+
+      {user && (
+        <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+          <DialogContent className="sm:max-w-md rounded-3xl">
+            <DialogHeader>
+              <DialogTitle>User Profile</DialogTitle>
+              <DialogDescription>Your account details</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 py-4">
+              <div className="flex items-center gap-4">
+                <div className="flex size-16 items-center justify-center rounded-full bg-primary/20 text-2xl font-bold text-primary">
+                  {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "?"}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">{user.name || "User"}</h3>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 space-y-2 mt-2">
+                <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Account Status</span>
+                   <span className="font-medium text-emerald-500">Active</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Member Since</span>
+                   <span className="font-medium">{new Date().toLocaleDateString("en-PK")}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-2">
+              <Button variant="destructive" className="w-full rounded-full gap-2" onClick={() => { setProfileOpen(false); signOut(); }}>
+                Sign Out
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </header>
   );

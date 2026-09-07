@@ -212,6 +212,33 @@ function Pharmacy() {
           )}
         </>
       )}
+
+      <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
+        <DialogContent className="sm:max-w-[425px] rounded-3xl">
+          <DialogHeader>
+            <DialogTitle>{selectedProduct?.name}</DialogTitle>
+            <DialogDescription>{selectedProduct?.brand} · {selectedProduct?.category}</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+             <div className="flex h-48 w-full items-center justify-center rounded-2xl bg-secondary overflow-hidden text-7xl">
+                {(selectedProduct?.imageUrl || selectedProduct?.image_url) ? (
+                   <img src={productService.getImageUrl(selectedProduct.imageUrl || selectedProduct.image_url)} alt={selectedProduct?.name} className="h-full w-full object-cover" />
+                ) : (
+                   selectedProduct?.emoji || "💊"
+                )}
+             </div>
+             <div className="space-y-2">
+                <p className="font-semibold text-xl text-primary">{formatPKR(selectedProduct?.price || 0)}</p>
+                <p className="text-sm text-muted-foreground">{selectedProduct?.description || "No detailed description available for this product."}</p>
+             </div>
+          </div>
+          <div className="flex gap-3">
+             <Button className="w-full rounded-full gap-2" onClick={() => { addToCart({ id: selectedProduct.$id || selectedProduct.id, name: selectedProduct.name, price: selectedProduct.price, image: selectedProduct.imageUrl || selectedProduct.image_url }); setSelectedProduct(null); }}>
+                <Plus className="size-4" /> Add to Cart
+             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }
