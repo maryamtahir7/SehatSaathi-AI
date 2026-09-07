@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { MapPin, Phone, Navigation, Loader2, Search } from "lucide-react";
+import { MapPin, Phone, Navigation, Loader2, Search, Crosshair } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -63,7 +63,7 @@ function ChangeMapCenter({ center }: { center: [number, number] }) {
 }
 
 function HospitalFinder() {
-  const [selectedCity, setSelectedCity] = useState(PAKISTAN_CITIES[0]);
+  const [selectedCity, setSelectedCity] = useState<{name: string, lat: number, lon: number}>(PAKISTAN_CITIES[0]);
   const [hospitals, setHospitals] = useState<HospitalData[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,63 +72,61 @@ function HospitalFinder() {
   // Default to Pakistan center initially, will update to city
   const [mapCenter, setMapCenter] = useState<[number, number]>([selectedCity.lat, selectedCity.lon]);
 
-  const fetchHospitals = async (city: typeof PAKISTAN_CITIES[0]) => {
+  const fetchHospitals = async (lat: number, lon: number) => {
     setLoading(true);
     try {
-      // Query Overpass API for hospitals/clinics within 10km radius of city center
-      const query = `
-        [out:json];
-        (
-          node["amenity"="hospital"](around:10000, ${city.lat}, ${city.lon});
-          way["amenity"="hospital"](around:10000, ${city.lat}, ${city.lon});
-          node["amenity"="clinic"](around:10000, ${city.lat}, ${city.lon});
-          way["amenity"="clinic"](around:10000, ${city.lat}, ${city.lon});
-        );
-        out center;
-      `;
-      const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-      const res = await fetch(url);
+      // Nominatim search in a ~10km bounding box around the coordinates. EXTREMELY fast and reliable.
+      const searchUrl = `https://nominatim.openstreetmap.org/search?q=hospital&format=json&addressdetails=1&limit=50&viewbox=${lon-0.1},${lat-0.1},${lon+0.1},${lat+0.1}&bounded=1`;
+      const res = await fetch(searchUrl, { headers: { 'User-Agent': 'SehatSaathi/1.0' } });
       const data = await res.json();
-
-      // Clean up data
-      const parsedHospitals = data.elements
-        .filter((el: any) => el.tags && (el.tags.name || el.tags.operator))
-        .map((el: any) => ({
-          id: el.id,
-          lat: el.lat || el.center?.lat,
-          lon: el.lon || el.center?.lon,
-          tags: el.tags,
-        }));
       
-      if (parsedHospitals.length > 0) {
-        setHospitals(parsedHospitals);
-      } else {
-        throw new Error("Empty results");
-      }
+      const parsedHospitals = data.map((el: any) => ({
+        id: el.place_id,
+        lat: parseFloat(el.lat),
+        lon: parseFloat(el.lon),
+        tags: {
+          name: el.name || el.address?.hospital || el.address?.clinic || "Unnamed Hospital",
+          amenity: el.type || "hospital",
+          address: el.display_name,
+          phone: "Not available" // Nominatim doesn't provide phone directly in standard search, but we show the full real address.
+        },
+      }));
+      setHospitals(parsedHospitals);
     } catch (error) {
-      console.error("Failed to fetch hospitals, using fallback data:", error);
-      // Fallback Mock Data for Hackathon Demo
-      const mockData: HospitalData[] = [
-        { id: 1, lat: city.lat + 0.01, lon: city.lon + 0.01, tags: { name: "City General Hospital", amenity: "hospital", phone: "042-111-222-333", address: `Main Boulevard, ${city.name}` } },
-        { id: 2, lat: city.lat - 0.015, lon: city.lon + 0.02, tags: { name: "Al-Shifa Healthcare", amenity: "hospital", phone: "042-999-888-777", address: `Healthcare Avenue, ${city.name}` } },
-        { id: 3, lat: city.lat + 0.02, lon: city.lon - 0.01, tags: { name: "National Medical Center", amenity: "hospital", phone: "042-555-444-333", address: `Medical District, ${city.name}` } },
-        { id: 4, lat: city.lat - 0.005, lon: city.lon - 0.02, tags: { name: "Care & Cure Clinic", amenity: "clinic", phone: "042-123-456-789", address: `Street 5, ${city.name}` } },
-        { id: 5, lat: city.lat + 0.03, lon: city.lon + 0.005, tags: { name: "Family Care Hospital", amenity: "hospital", phone: "042-333-222-111", address: `Family Road, ${city.name}` } },
-      ];
-      setHospitals(mockData);
+      console.error("Failed to fetch real hospitals:", error);
+      setHospitals([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        setSelectedCity({ name: "My Location", lat, lon });
+      },
+      (err) => {
+        setLoading(false);
+        alert("Unable to retrieve your location. Please check browser permissions.");
+      }
+    );
+  };
+
   useEffect(() => {
     setMapCenter([selectedCity.lat, selectedCity.lon]);
-    fetchHospitals(selectedCity);
+    fetchHospitals(selectedCity.lat, selectedCity.lon);
     setSelectedHospital(null);
   }, [selectedCity]);
 
   const getPhone = (tags: any) => tags.phone || tags["contact:phone"] || tags.contact_phone || "Not available";
-  const getAddress = (tags: any) => tags["addr:full"] || tags["addr:street"] || tags.address || `${selectedCity.name}, Pakistan`;
+  const getAddress = (tags: any) => tags["addr:full"] || tags["addr:street"] || tags.address || "Address not available";
 
   const filteredHospitals = hospitals.filter(h => 
     (h.tags.name || h.tags.operator || "").toLowerCase().includes(searchQuery.toLowerCase())
@@ -145,9 +143,14 @@ function HospitalFinder() {
         {/* Sidebar */}
         <Card className="w-full lg:w-96 flex flex-col rounded-3xl border-border/60 shadow-lift overflow-hidden shrink-0 h-full">
           <div className="p-5 border-b border-border/60 bg-secondary/30">
-            <h2 className="font-semibold mb-3 flex items-center gap-2">
-              <MapPin className="size-4 text-primary" /> Select City
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold flex items-center gap-2">
+                <MapPin className="size-4 text-primary" /> Location
+              </h2>
+              <Button size="sm" variant="secondary" onClick={detectLocation} className="h-7 text-xs rounded-full shadow-soft bg-primary/10 text-primary hover:bg-primary/20">
+                <Crosshair className="size-3 mr-1" /> My Location
+              </Button>
+            </div>
             <div className="flex flex-wrap gap-2 mb-4">
               {PAKISTAN_CITIES.map(c => (
                 <Badge
@@ -159,6 +162,9 @@ function HospitalFinder() {
                   {c.name}
                 </Badge>
               ))}
+              {selectedCity.name === "My Location" && (
+                <Badge variant="default" className="cursor-pointer rounded-full px-3 py-1 text-xs">My Location</Badge>
+              )}
             </div>
 
             <div className="relative">
