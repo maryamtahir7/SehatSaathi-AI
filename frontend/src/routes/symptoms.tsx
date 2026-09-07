@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
 import { symptomOptions } from "@/lib/mock-data";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 
 interface PredictionResult {
   disease: string;
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/symptoms")({
 });
 
 function Symptoms() {
-  const { t } = useApp();
+  const { t } = useAppContext();
   const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);

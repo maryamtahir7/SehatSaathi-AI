@@ -146,9 +146,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
-export function useApp() {
+export function useAppContext() {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error("useApp must be used inside AppProvider");
+  if (!ctx) throw new Error("useAppContext must be used inside AppProvider");
   return ctx;
 }
 

@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 
 export const Route = createFileRoute("/diet")({
   head: () => ({
@@ -38,7 +38,7 @@ export const Route = createFileRoute("/diet")({
 const restrictions = ["Diabetes", "Hypertension", "Gluten-Free", "Lactose Intolerant", "Vegetarian", "Low Sodium"];
 
 function Diet() {
-  const { t } = useApp();
+  const { t } = useAppContext();
   const [form, setForm] = useState({ age: "32", weight: "78", height: "172", gender: "male", goal: "loss" });
   const [picked, setPicked] = useState<string[]>(["Diabetes"]);
   const [loading, setLoading] = useState(false);

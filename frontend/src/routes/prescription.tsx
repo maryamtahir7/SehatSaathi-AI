@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
-import { useApp } from "@/lib/app-context";
-import { formatPKR, useApp } from "@/lib/app-context";
+import { formatPKR, useAppContext } from "@/lib/app-context";
 import { createWorker, Worker } from 'tesseract.js';
 
 export const Route = createFileRoute("/prescription")({
@@ -27,7 +26,7 @@ export const Route = createFileRoute("/prescription")({
 });
 
 function Prescription() {
-  const { t, addToCart, setCartOpen } = useApp();
+  const { t, addToCart, setCartOpen } = useAppContext();
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");

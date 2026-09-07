@@ -1,13 +1,13 @@
 import { PageShell } from "@/components/site/page-shell";
 import { createFileRoute } from '@tanstack/react-router';
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 
 export const Route = createFileRoute('/privacy')({
   component: PrivacyPolicy,
 });
 
 function PrivacyPolicy() {
-  const { t } = useApp();
+  const { t } = useAppContext();
   return (
     <PageShell
       eyebrow={t("legal_eyebrow")}

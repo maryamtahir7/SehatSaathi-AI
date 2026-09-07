@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { PageShell } from "@/components/site/page-shell";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,7 +75,7 @@ function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number
 }
 
 function HospitalFinder() {
-  const { t } = useApp();
+  const { t } = useAppContext();
   const [selectedCity, setSelectedCity] = useState<{name: string, lat: number, lon: number}>(PAKISTAN_CITIES[0]);
   const [specialty, setSpecialty] = useState("All");
   const [hospitals, setHospitals] = useState<HospitalData[]>([]);

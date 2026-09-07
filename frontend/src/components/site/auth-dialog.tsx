@@ -5,10 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 
 export function AuthDialog() {
-  const { authOpen, setAuthOpen, signIn, signUp, t } = useApp();
+  const { authOpen, setAuthOpen, signIn, signUp, t } = useAppContext();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

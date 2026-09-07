@@ -13,11 +13,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useState } from "react";
-import { formatPKR, useApp } from "@/lib/app-context";
+import { formatPKR, useAppContext } from "@/lib/app-context";
 import { orderService } from "@/lib/appwrite";
 
 export function CartSheet() {
-  const { cart, cartOpen, setCartOpen, setQty, removeFromCart, cartTotal, t, rtl, clearCart, user } = useApp();
+  const { cart, cartOpen, setCartOpen, setQty, removeFromCart, cartTotal, t, rtl, clearCart, user } = useAppContext();
   const [checkingOut, setCheckingOut] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState(false);
   const [formData, setFormData] = useState({ 

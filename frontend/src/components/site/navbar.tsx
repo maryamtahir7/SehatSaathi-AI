@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 import type { DictKey } from "@/lib/i18n";
 
 const mainLinks: { to: string; key: DictKey }[] = [
@@ -25,7 +25,7 @@ const serviceLinks: { to: string; key: DictKey; icon: any }[] = [
 
 export function Navbar() {
   const { t, lang, setLang, dark, toggleDark, cartCount, setCartOpen, setAuthOpen, user, signOut } =
-    useApp();
+    useAppContext();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });

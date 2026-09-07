@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 import { suggestedPrompts } from "@/lib/mock-data";
 import { productService } from "@/lib/appwrite";
 
@@ -36,7 +36,7 @@ declare global {
 }
 
 function Chat() {
-  const { lang, setLang, t, addToCart } = useApp();
+  const { lang, setLang, t, addToCart } = useAppContext();
   const [messages, setMessages] = useState<Msg[]>([
     {
       id: 1,

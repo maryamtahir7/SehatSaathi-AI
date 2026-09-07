@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 
 export function PageShell({
   eyebrow,
@@ -44,7 +44,7 @@ export function PageShell({
 }
 
 export function Disclaimer() {
-  const { t } = useApp();
+  const { t } = useAppContext();
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm">
       <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />

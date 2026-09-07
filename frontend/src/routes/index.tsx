@@ -17,7 +17,7 @@ import heroImg from "@/assets/hero-health.jpg";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -53,7 +53,7 @@ const steps: { icon: any; titleKey: DictKey; bodyKey: DictKey }[] = [
 ];
 
 function Home() {
-  const { t, setCartOpen } = useApp();
+  const { t, setCartOpen } = useAppContext();
 
   return (
     <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>

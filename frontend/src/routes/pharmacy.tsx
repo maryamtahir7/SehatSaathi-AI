@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PageShell } from "@/components/site/page-shell";
-import { formatPKR, useApp } from "@/lib/app-context";
+import { formatPKR, useAppContext } from "@/lib/app-context";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { productService, databases, DB, COL } from "@/lib/appwrite";
 
@@ -38,7 +38,7 @@ const FALLBACK_PRODUCTS = [
 ];
 
 function Pharmacy() {
-  const { addToCart, t, setCartOpen } = useApp();
+  const { addToCart, t, setCartOpen } = useAppContext();
   const [cat, setCat] = useState<string>("All");
   const [q, setQ] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<any>(null);

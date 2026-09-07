@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Disclaimer, PageShell } from "@/components/site/page-shell";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 
 export const Route = createFileRoute("/diagnostics")({
   head: () => ({
@@ -33,7 +33,7 @@ const tabs = [
 ];
 
 function Diagnostics() {
-  const { t } = useApp();
+  const { t } = useAppContext();
   const [tab, setTab] = useState("xray");
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);

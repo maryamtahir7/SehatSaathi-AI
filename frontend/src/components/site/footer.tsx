@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { HeartPulse, Phone, Mail, MapPin } from "lucide-react";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 
 export function Footer() {
-  const { t } = useApp();
+  const { t } = useAppContext();
   return (
     <footer className="mt-24 border-t border-border/60 bg-card/50 no-print">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-4 lg:px-8">

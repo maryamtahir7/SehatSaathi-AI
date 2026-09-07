@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 import { productService, orderService, databases, DB, COL, ID, Query } from "@/lib/appwrite";
 import { formatPKR } from "@/lib/app-context";
 
@@ -31,7 +31,7 @@ type User    = { $id: string; name?: string; email?: string; $createdAt?: string
 type Category = { $id: string; name: string; imageUrl?: string; $createdAt?: string };
 
 function AdminPortal() {
-  const { user, authLoading } = useApp();
+  const { user, authLoading } = useAppContext();
   const isAdmin = user?.labels?.includes("admin") || true; // allow all for hackathon
 
   if (authLoading) return (

@@ -1,14 +1,14 @@
 import { PageShell } from "@/components/site/page-shell";
 import { HeartPulse, Shield, Activity, Users, Award, MapPin } from "lucide-react";
 import { createFileRoute } from '@tanstack/react-router';
-import { useApp } from "@/lib/app-context";
+import { useAppContext } from "@/lib/app-context";
 
 export const Route = createFileRoute('/about')({
   component: About,
 });
 
 function About() {
-  const { t } = useApp();
+  const { t } = useAppContext();
   return (
     <PageShell
       eyebrow={t("about_mission")}
