@@ -29,6 +29,7 @@ export function CartSheet() {
         address: "Address not provided",
         city: "Not provided",
         postalCode: "00000",
+        paymentMethod: "Cash on Delivery",
         items: JSON.stringify(cart),
         total: cartTotal + delivery,
         status: "Pending",
